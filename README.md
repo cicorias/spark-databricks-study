@@ -1,12 +1,12 @@
 ---
-title: Databricks FDE Interview Prep
-tags: [databricks, spark, pyspark, interview, fde]
+title: Databricks Spark Study Guide
+tags: [databricks, spark, pyspark, study-guide]
 created: 2026-06-09
 ---
 
-# Databricks Forward Deployed Engineer — Coding Interview Prep
+# Databricks & Spark — Study Guide
 
-A self-contained study vault for the Databricks **Forward Deployed Engineer (FDE)** coding round. Built to be read in [Obsidian](https://obsidian.md) and version-controlled on GitHub. All cross-links are standard relative Markdown links, so they render in both.
+A self-contained study vault for **Databricks** and **PySpark**. Built to be read in [Obsidian](https://obsidian.md) and version-controlled on GitHub. All cross-links are standard relative Markdown links, so they render in both.
 
 > If you prefer Obsidian wikilinks, you can convert `[text](01-file.md)` → `[[01-file]]` with a find-and-replace, but it isn't necessary.
 
@@ -17,20 +17,20 @@ This is more than a pile of notes — it's a small study platform with four work
 | Feature | What it is | Where | Try it |
 |---|---|---|---|
 | 📚 **Study vault** | 19 cross-linked Markdown notes — mental models, optimization playbook, Delta deep-dive, error playbook, drills, and a self-assessment rubric | `01`–`19` `*.md` | Open in Obsidian or read on GitHub |
-| 🧪 **Hands-on notebooks** | Runnable PySpark labs in two tracks: *Databricks* (import to Free Edition) and *local* (jupytext). Includes the deliberately **broken/slow "FDE" notebooks** you fix against a 25-min timer, plus their solutions | `notebooks/` | `mise run db:import` or open locally |
+| 🧪 **Hands-on notebooks** | Runnable PySpark labs in two tracks: *Databricks* (import to Free Edition) and *local* (jupytext). Includes deliberately **broken/slow notebooks** you fix against a 25-min timer, plus their solutions | `notebooks/` | `mise run db:import` or open locally |
 | 🎓 **Guided lesson tool** | A self-paced teaching system: 19 interactive HTML lessons with in-browser quizzes, git-tracked progress (⬜/🟡/✅), and resume-on-any-machine via `mise run teach:*` | `teach/`, `scripts/teach.py` | `mise run teach:next` |
 | 💬 **Study Q&A web app** | A local LLM **chat UI built on the GitHub Copilot SDK** that answers questions grounded in *this repo's* docs and code, with clickable file citations | `webapp/` | `mise run webapp` → <http://localhost:4173> |
 
 All four are wired together with [`mise`](https://mise.jdx.dev) tasks and a local Python ([uv](https://docs.astral.sh/uv/)) + Node ([pnpm](https://pnpm.io)) toolchain, version-matched to **Databricks Serverless Environment v4** (Python 3.12.3, JDK 17, PySpark 3.5.x).
 
-## The interview in one paragraph
+## The study focus in one paragraph
 
-A 60-minute **pair-programming** session with one or two FDEs acting as teammates/customers. It's **open-book** (docs, API references, and the in-product AI assistant **Genie Code** are allowed; external AI tools like ChatGPT/Cursor are not). Everything runs on **Databricks Free Edition** (serverless). The two graded segments:
+This guide centers on **Databricks Free Edition** (serverless) and **PySpark**, working **open-book** with docs, API references, and the in-product AI assistant **Genie Code**. The material is organized around two core skill areas:
 
-1. **~25 min — Spark Optimization.** You're given a *running but slow* PySpark app with **4–6** things to improve. Fix them and *explain why*.
-2. **~25 min — Python feature work.** Add a feature to an existing Python product; read and reason about code you didn't write.
+1. **Spark Optimization.** Take a *running but slow* PySpark app, find the **4–6** things to improve, fix them, and *explain why*.
+2. **Python feature work.** Add a feature to an existing Python product; read and reason about code you didn't write.
 
-They grade four signals: **Computational Thinking, Code Stewardship, AI Stewardship, Resilience.** The single most important behavior is **thinking out loud.**
+It builds four skills: **Computational Thinking, Code Stewardship, AI Stewardship, Resilience.** The single most valuable habit while practicing is **thinking out loud.**
 
 ## How to use this vault
 
@@ -135,7 +135,7 @@ mise run teach:lesson 06       # (re)open any specific lesson by number
 mise run teach:restart 01      # reset a lesson to not-started so you can replay it
 ```
 
-The 19 lessons follow the interview's two phases: Spark mental models + optimization (Phase 2) first, then Python feature-dev and AI stewardship (Phase 1). See [`teach/CURRICULUM.md`](teach/CURRICULUM.md) for the full map and a priority list if prep time is short.
+The 19 lessons follow the two core skill areas: Spark mental models + optimization first, then Python feature-dev and AI stewardship. See [`teach/CURRICULUM.md`](teach/CURRICULUM.md) for the full map and a priority list if study time is short.
 
 ## Study Q&A web app — chat with this repo (GitHub Copilot SDK)
 
@@ -167,57 +167,53 @@ Configurable via env vars (`PORT`, `COPILOT_MODEL`, `STUDY_REPO_ROOT`, `COPILOT_
 - **Day 4 — Spark hands-on.** Do 05 with a 25-minute timer (`notebooks/databricks/03_…_start.py`). Don't peek at the solution until you've found at least 4 issues. Optionally do one of the [16](16-Additional-Spark-Challenges.md) follow-ups.
 - **Day 5 — Python hands-on.** Do 06 with a 25-minute timer. Optionally do one [17](17-Additional-Python-Challenges.md) follow-up.
 - **Day 6 — AI + drills.** Read 07, run the hallucination drill. Then 08 and 13 and 18 rapid-fire out loud.
-- **Day 7 — Dress rehearsal.** Redo 05 and 06 end-to-end while screen-recording. Watch back with [19](19-Self-Assessment-Rubric.md) and score yourself.
+- **Day 7 — Review.** Redo 05 and 06 end-to-end. Review with [19](19-Self-Assessment-Rubric.md) and score yourself.
 
 ## The one rule that beats everything
 
-> **Narrate.** A correct answer delivered in silence scores worse than a slightly-wrong answer where you reason out loud, catch yourself, and recover. They are hiring someone to sit next to a customer and think in the open. Show them that person.
+> **Narrate.** Reasoning out loud — catching yourself, recovering, and explaining trade-offs — cements understanding far better than working in silence. Practice thinking in the open.
 
 
-## Interview Overview (my understanding of the format)
+## Skill Areas Overview
 
-A roughly 60-minute pair-programming session intended to mirror the day-to-day work
-of a Forward Deployed Engineer (FDE): solving realistic customer problems with code,
+This guide mirrors the day-to-day work of solving realistic data problems with code
 on the Databricks platform. The emphasis is on first-principles thinking and an
 AI-builder mindset rather than memorized syntax.
 
-### The "vibe"
-- Treat it as collaborative pair programming — the interviewer is a teammate/customer.
+### The approach
+- Work hands-on, treating each exercise as a real customer problem to solve.
 - Open-book: docs and the in-product Databricks Assistant are fair game.
 - Think out loud — narrate your mental model and trade-offs constantly.
 - Customer-translate: explain your code in business terms a stakeholder would follow.
 
 ### Setup & environment
 - Runs on Databricks Free Edition (serverless).
-- You join a shared workspace and screen-share while working.
 - Sign up for a Free Edition account and get comfortable with notebooks, running
-  Python/SQL cells, and the built-in Assistant ahead of time.
+  Python/SQL cells, and the built-in Assistant.
 - Keep code clean, structured, commented, and reproducible.
-- Only the built-in Databricks Assistant is allowed — no external AI tools
-  (Claude, Cursor, ChatGPT). API docs are fine.
+- Lean on the built-in Databricks Assistant; API docs are fine.
 - Use only public or self-generated data — never sensitive/proprietary data.
 
-### What to expect
-Two timed phases, back-to-back:
+### The two focus areas
 
-**Phase 1 — Python feature work**
-- Digest and understand an unfamiliar customer codebase, debug as needed, add a feature.
+**Python feature work**
+- Digest and understand an unfamiliar codebase, debug as needed, add a feature.
 - The Assistant is allowed, but *you are the pilot* — audit its output and catch
   hallucinations or inefficiencies.
 - Be ready to discuss how the code executes and scales.
 
-**Phase 2 — Spark optimization**
-- You're handed a running but poorly performing Spark application.
+**Spark optimization**
+- Take a running but poorly performing Spark application.
 - Find and fix performance issues and explain the reasoning behind each.
 - Ask clarifying questions; be ready to discuss alternatives.
 
-### How to prepare
+### How to study
 - Brush up on Python and your common tooling.
 - Sign up for Databricks Free Edition and experiment with the Assistant.
 - Practice: spend ~50–60 min on a small coding exercise in a Databricks notebook
-  on a dataset of your choice, using the Assistant — the closest analog to the real thing.
+  on a dataset of your choice, using the Assistant.
 
-### Evaluation signals
+### Skills you'll build
 - **Computational Thinking** — decompose a messy problem into a clean sequence of transforms.
 - **Code Stewardship** — write working code *and* explain what it does under the hood;
   read and reason about code you didn't write.
@@ -225,7 +221,7 @@ Two timed phases, back-to-back:
 - **Resilience** — when you hit a bug, navigate the unknown calmly and methodically.
 
 ### Final tips
-- Don't drown in syntax — if you're stuck >2 min on an import or a comma, say so and use
-  the offered "bail out" to keep moving. This tests architecture, not typing speed.
+- Don't drown in syntax — if you're stuck >2 min on an import or a comma, move on and
+  come back. This is about architecture, not typing speed.
 - Own the final answer — whether hand-written or Assistant-generated, be ready to defend
   every line.
