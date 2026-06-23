@@ -10,9 +10,22 @@ A self-contained study vault for the Databricks **Forward Deployed Engineer (FDE
 
 > If you prefer Obsidian wikilinks, you can convert `[text](01-file.md)` → `[[01-file]]` with a find-and-replace, but it isn't necessary.
 
+## What's in this repo
+
+This is more than a pile of notes — it's a small study platform with four working pieces:
+
+| Feature | What it is | Where | Try it |
+|---|---|---|---|
+| 📚 **Study vault** | 19 cross-linked Markdown notes — mental models, optimization playbook, Delta deep-dive, error playbook, drills, and a self-assessment rubric | `01`–`19` `*.md` | Open in Obsidian or read on GitHub |
+| 🧪 **Hands-on notebooks** | Runnable PySpark labs in two tracks: *Databricks* (import to Free Edition) and *local* (jupytext). Includes the deliberately **broken/slow "FDE" notebooks** you fix against a 25-min timer, plus their solutions | `notebooks/` | `mise run db:import` or open locally |
+| 🎓 **Guided lesson tool** | A self-paced teaching system: 19 interactive HTML lessons with in-browser quizzes, git-tracked progress (⬜/🟡/✅), and resume-on-any-machine via `mise run teach:*` | `teach/`, `scripts/teach.py` | `mise run teach:next` |
+| 💬 **Study Q&A web app** | A local LLM **chat UI built on the GitHub Copilot SDK** that answers questions grounded in *this repo's* docs and code, with clickable file citations | `webapp/` | `mise run webapp` → <http://localhost:4173> |
+
+All four are wired together with [`mise`](https://mise.jdx.dev) tasks and a local Python ([uv](https://docs.astral.sh/uv/)) + Node ([pnpm](https://pnpm.io)) toolchain, version-matched to **Databricks Serverless Environment v4** (Python 3.12.3, JDK 17, PySpark 3.5.x).
+
 ## The interview in one paragraph
 
-A 60-minute **pair-programming** session with one or two FDEs acting as teammates/customers. It's **open-book** (docs, API references, and the in-product AI assistant **Genie Code** are allowed; external AI tools like ChatGPT/Cursor are not). Everything runs on **Databricks Free Edition** (serverless). The two graded segments per your scheduling email:
+A 60-minute **pair-programming** session with one or two FDEs acting as teammates/customers. It's **open-book** (docs, API references, and the in-product AI assistant **Genie Code** are allowed; external AI tools like ChatGPT/Cursor are not). Everything runs on **Databricks Free Edition** (serverless). The two graded segments:
 
 1. **~25 min — Spark Optimization.** You're given a *running but slow* PySpark app with **4–6** things to improve. Fix them and *explain why*.
 2. **~25 min — Python feature work.** Add a feature to an existing Python product; read and reason about code you didn't write.
@@ -123,6 +136,28 @@ mise run teach:restart 01      # reset a lesson to not-started so you can replay
 ```
 
 The 19 lessons follow the interview's two phases: Spark mental models + optimization (Phase 2) first, then Python feature-dev and AI stewardship (Phase 1). See [`teach/CURRICULUM.md`](teach/CURRICULUM.md) for the full map and a priority list if prep time is short.
+
+## Study Q&A web app — chat with this repo (GitHub Copilot SDK)
+
+A small local web app (`webapp/`) that lets you **ask questions in plain English and get answers grounded in this repository's own notes, code, and lessons** — every answer comes with clickable file citations back to the source.
+
+![Study Q&A web app — a chat answer about broadcast joins with file citations to teach/lessons/06-broadcast-joins.html and 04-Spark-Optimization-Playbook.md](docs/images/study-qa-webapp.png)
+
+What makes it notable:
+
+- **Built on the [GitHub Copilot SDK](https://github.com/github/copilot-sdk).** It drives your already-authenticated Copilot CLI — **no separate API key** needed.
+- **Repo-grounded answers.** The assistant reads and searches the repo (`STUDY_REPO_ROOT`) to answer, so responses cite the actual study guides, notebooks, and lessons rather than generic web knowledge.
+- **Read-only by design.** A custom `onPermissionRequest` handler approves only read operations — the assistant can't modify, create, delete files, or run shell commands.
+- **Clickable 📄 citations.** File references in an answer become links; clicking one opens the file locally (works on WSL2, macOS, and Linux).
+- **Streaming Markdown UI.** Server-Sent Events stream the response; answers render with GFM tables/headings/lists (`marked` + `DOMPurify`). No build step.
+- **Conversation continuity.** Follow-up questions reuse the session so context carries over.
+
+```bash
+mise run webapp          # installs deps and starts the server
+# then open http://localhost:4173
+```
+
+Configurable via env vars (`PORT`, `COPILOT_MODEL`, `STUDY_REPO_ROOT`, `COPILOT_CLI_PATH`). Requires Node 20+ and an authenticated Copilot CLI on your `PATH`. See [`webapp/README.md`](webapp/README.md) for architecture details.
 
 ## Suggested 5–7 day plan
 

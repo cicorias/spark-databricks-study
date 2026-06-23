@@ -1173,7 +1173,7 @@ SETUP_19,
 """
 <section>
 <h2>Why narration is the highest-leverage skill</h2>
-<p>The recruiter email states it directly: <em>"Think Out Loud: This is the most important requirement."</em></p>
+<p>Thinking out loud is the single most important requirement of the session.</p>
 <p>The reason: FDEs sit next to customers. A solution delivered in silence provides no insight into reasoning, no ability to course-correct, no demonstration of the collaborative thinking the role requires. A slightly-wrong answer with clear audible reasoning — catching yourself and recovering — scores higher than a silent correct answer.</p>
 <div class="box i"><strong>Dead air is the enemy.</strong>Every second of silence during a Spark optimization is a missed scoring opportunity.</div>
 </section>
@@ -1251,7 +1251,7 @@ for line in scoring_lines:
 """,
 [
     ("q1",
-     "The recruiter email says 'Think Out Loud: This is the MOST IMPORTANT requirement.' Why does narration matter more than getting the right answer?",
+     "Thinking out loud is called out as the most important requirement. Why does narration matter more than getting the right answer?",
      [("It doesn't — a correct answer always beats a narrated wrong one.", False),
       ("FDEs work with customers who need to understand the reasoning, not just the output. An FDE who thinks silently is untrustworthy in front of a customer — the interview tests the collaborative behavior, not just the answer.", True),
       ("Narration helps the interviewer understand what the candidate is typing.", False),
