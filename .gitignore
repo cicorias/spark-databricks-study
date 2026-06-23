@@ -1,0 +1,30 @@
+# Python / uv / mise
+.venv/
+__pycache__/
+*.pyc
+.python-version-local
+.mise.local.toml
+
+# Secrets / per-machine config
+.env
+!.env.example
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Local Spark scratch
+spark-warehouse/
+metastore_db/
+derby.log
+*.crc
+_SUCCESS
+.DS_Store
+
+# Local Delta / Parquet output from labs
+data/
+output/
+
+# IDE
+.vscode/
+.idea/

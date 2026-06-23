@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Lesson 10 — Skew Handling</title>
+<style>
+:root{--bg:#0f1117;--sur:#1a1d27;--bdr:#2e3147;--acc:#ff3621;--grn:#00a972;--txt:#e8eaf0;--mut:#8b8fa8;--cb:#12151e;--amb:#e8a020;--blu:#4a90e2}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:15px;line-height:1.7;padding:2rem 1rem}
+.page{max-width:800px;margin:0 auto}
+.lh{margin-bottom:2rem}
+.ln{color:var(--acc);font-size:.78rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+h1{font-size:1.85rem;font-weight:800;margin:.2rem 0 .4rem}
+.sub{color:var(--mut);font-size:1rem}
+.badges{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.6rem}
+.badge{font-size:.68rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:.2rem .55rem;border-radius:999px;border:1px solid var(--bdr);color:var(--mut)}
+.badge.p{border-color:var(--acc);color:var(--acc)}
+.nav{display:flex;justify-content:space-between;margin:1.5rem 0;font-size:.84rem;color:var(--mut)}
+.nav a{color:var(--grn);text-decoration:none}
+section{margin-bottom:2rem}
+h2{font-size:1rem;font-weight:700;color:var(--grn);margin-bottom:.6rem;border-bottom:1px solid var(--bdr);padding-bottom:.3rem}
+h3{font-size:.95rem;font-weight:600;margin:1rem 0 .3rem;color:var(--txt)}
+p{margin-bottom:.8rem}
+ul,ol{padding-left:1.4rem;margin-bottom:.8rem}
+li{margin-bottom:.3rem}
+pre{background:var(--cb);border:1px solid var(--bdr);border-radius:8px;padding:1rem 1.2rem;overflow-x:auto;font-size:.82rem;line-height:1.55;margin-bottom:.9rem;font-family:"JetBrains Mono","Fira Code","Cascadia Code",monospace;white-space:pre}
+p code,li code{background:var(--cb);border:1px solid var(--bdr);border-radius:3px;padding:.1em .35em;font-size:.82em;font-family:"JetBrains Mono","Fira Code",monospace}
+.box{border-left:3px solid var(--grn);background:var(--sur);border-radius:0 8px 8px 0;padding:.8rem 1.1rem;margin-bottom:.9rem}
+.box.w{border-left-color:var(--amb)}
+.box.i{border-left-color:var(--acc)}
+.box strong{display:block;margin-bottom:.25rem;font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;color:var(--mut)}
+/* setup / teardown banners */
+.setup-banner,.teardown-banner{border-radius:8px;padding:1rem 1.2rem;margin-bottom:1rem}
+.setup-banner{background:#0a1f14;border:1px solid #1a5c38}
+.setup-banner h2{color:#00d488;border-color:#1a5c38}
+.teardown-banner{background:#1a0e0a;border:1px solid #5c2a1a}
+.teardown-banner h2{color:#e87040;border-color:#5c2a1a}
+.copy-btn{float:right;background:transparent;border:1px solid var(--bdr);color:var(--mut);font-size:.72rem;padding:.2rem .55rem;border-radius:4px;cursor:pointer;font-family:monospace;margin-bottom:.3rem}
+.copy-btn:hover{border-color:var(--grn);color:var(--grn)}
+/* quiz */
+.quiz{background:var(--sur);border:1px solid var(--bdr);border-radius:10px;padding:1.2rem;margin-bottom:1.2rem}
+.quiz h3{margin-top:0;font-size:.93rem}
+.opts{list-style:none;padding:0;margin:.8rem 0}
+.opts li{padding:.5rem .9rem;border:1px solid var(--bdr);border-radius:7px;margin-bottom:.4rem;cursor:pointer;font-size:.87rem;transition:border-color .15s,background .15s}
+.opts li:hover{border-color:var(--grn);background:rgba(0,169,114,.05)}
+.opts li.ok{border-color:var(--grn);background:rgba(0,169,114,.12)}
+.opts li.no{border-color:var(--acc);background:rgba(255,54,33,.1)}
+.fb{display:none;font-size:.84rem;margin-top:.6rem;padding:.6rem .9rem;border-radius:7px}
+.fb.show{display:block}
+.fb.ok{background:rgba(0,169,114,.1);color:var(--grn)}
+.fb.no{background:rgba(255,54,33,.1);color:#ff7a6b}
+.pbw{background:var(--sur);border:1px solid var(--bdr);border-radius:999px;height:7px;overflow:hidden;margin-bottom:.3rem}
+.pb{height:100%;background:var(--grn);transition:width .4s;border-radius:999px;width:0%}
+.pl{font-size:.72rem;color:var(--mut);text-align:right}
+.done-box{text-align:center;padding:1.8rem;border:1px solid var(--bdr);border-radius:10px;background:var(--sur);margin-top:1.5rem}
+.done-box h2{border:none;color:var(--grn);font-size:1.3rem}
+.cmd{display:inline-block;background:var(--cb);border:1px solid var(--grn);border-radius:7px;padding:.5rem 1rem;font-family:monospace;font-size:.87rem;color:var(--grn);margin:.8rem 0}
+.nxt-btn{display:inline-block;margin-top:.4rem;padding:.6rem 1.4rem;background:var(--acc);color:white;font-weight:700;font-size:.87rem;border-radius:7px;text-decoration:none}
+footer{margin-top:2.5rem;padding-top:.9rem;border-top:1px solid var(--bdr);color:var(--mut);font-size:.78rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:.4rem}
+footer a{color:var(--mut)}
+</style>
+</head>
+<body><div class="page">
+
+<div class="lh">
+  <div class="ln">Lesson 10 of 19</div>
+  <h1>Skew Handling</h1>
+  <p class="sub">Lever 5: when one partition ruins the whole stage</p>
+  <div class="badges"><span class="badge p">Code Stewardship</span><span class="badge">Computational Thinking</span></div>
+</div>
+
+<div class="pbw"><div class="pb" id="pb"></div></div>
+<p class="pl" id="pl">0 / 3 checks</p>
+
+<div class="nav"><a href="09-udf-avoidance.html">← 09: UDF Avoidance</a><a href="11-repartition-vs-coalesce.html">11: Repartition vs Coalesce →</a></div>
+
+<!-- ── SETUP ────────────────────────────────────────────────────── -->
+<section class="setup-banner">
+<h2>🛠 Setup — run this cell first</h2>
+<p>Paste into a Databricks notebook cell and run before working through the examples below.</p>
+<button class="copy-btn" onclick="copyCode('setup-code')">copy</button>
+<pre id="setup-code"># Shared setup — creates Delta tables used across lessons 02-11
+# Run once per cluster session; safe to re-run (uses overwrite mode)
+
+from pyspark.sql import functions as F
+from pyspark.sql.types import *
+import random, datetime
+
+spark.sql("CREATE DATABASE IF NOT EXISTS lesson_db")
+
+# ── fact table: 500k order rows ──────────────────────────────────────────────
+orders_schema = StructType([
+    StructField("order_id",    LongType(),   False),
+    StructField("customer_id", IntegerType(),False),
+    StructField("product_id",  IntegerType(),False),
+    StructField("country",     StringType(), False),
+    StructField("amount",      DoubleType(), False),
+    StructField("year",        IntegerType(),False),
+    StructField("order_date",  DateType(),   False),
+])
+rows = []
+countries = ["US","US","US","US","GB","DE","FR","BR","IN","JP"]
+for i in range(500_000):
+    cid = random.randint(1, 200)    # 200 customers, skewed toward low ids
+    if cid <= 5: cid = 1            # customer 1 = hot key (skew demo)
+    rows.append((
+        i, cid, random.randint(1,100),
+        countries[random.randint(0,9)],
+        round(random.uniform(5.0, 2000.0), 2),
+        random.choice([2023,2024,2025]),
+        datetime.date(random.choice([2023,2024,2025]),
+                      random.randint(1,12), random.randint(1,28))
+    ))
+orders_df = spark.createDataFrame(rows, orders_schema)
+(orders_df.write.mode("overwrite").format("delta")
+    .partitionBy("year")
+    .saveAsTable("lesson_db.orders"))
+
+# ── dimension table: 100 products (small — broadcast candidate) ──────────────
+products_df = spark.createDataFrame(
+    [(i, f"Product {i}", ["Electronics","Clothing","Food","Sports"][i%4],
+      round(10 + i * 2.5, 2))
+     for i in range(1, 101)],
+    ["product_id","name","category","list_price"]
+)
+(products_df.write.mode("overwrite").format("delta")
+    .saveAsTable("lesson_db.products"))
+
+# ── customers dimension (200 rows, skewed: customer 1 has most orders) ────────
+customers_df = spark.createDataFrame(
+    [(i, f"Customer {i}", ["US","GB","DE","FR","BR"][i%5])
+     for i in range(1, 201)],
+    ["customer_id","name","region"]
+)
+(customers_df.write.mode("overwrite").format("delta")
+    .saveAsTable("lesson_db.customers"))
+
+print("Setup complete. Tables: lesson_db.orders, lesson_db.products, lesson_db.customers")
+spark.sql("SELECT year, COUNT(*) as cnt FROM lesson_db.orders GROUP BY year ORDER BY year").show()
+</pre>
+</section>
+
+<!-- ── LESSON BODY ──────────────────────────────────────────────── -->
+
+<section>
+<h2>What skew looks like and why it's expensive</h2>
+<p>In the setup, we made <code>customer_id=1</code> a hot key — it has far more orders than any other customer. When this column is used in a join or groupBy key, one partition ends up with most of the data, one task takes much longer, and the entire stage waits.</p>
+<pre>from pyspark.sql import functions as F
+orders = spark.table("lesson_db.orders")
+
+# Diagnose skew: check partition distribution after a groupBy
+spark.conf.set("spark.sql.shuffle.partitions", "20")
+dist = (orders
+  .groupBy(F.spark_partition_id().alias("partition_id"))
+  .count()
+  .orderBy(F.desc("count")))
+dist.show()
+
+# Check customer distribution — customer_id=1 should dominate
+(orders
+  .groupBy("customer_id")
+  .count()
+  .orderBy(F.desc("count"))
+  .show(5))</pre>
+</section>
+
+<section>
+<h2>Fix 1: AQE skew join (free, on by default)</h2>
+<pre># Check AQE skew settings
+print(spark.conf.get("spark.sql.adaptive.skewJoin.enabled"))        # default: true
+print(spark.conf.get("spark.sql.adaptive.skewJoin.skewedPartitionFactor"))  # default: 5
+
+# AQE automatically detects and splits skewed partitions in joins
+# It replicates the matching side to handle the split
+orders.join(spark.table("lesson_db.customers"), "customer_id").explain("formatted")
+# Look for: CustomShuffleReaderExec (AQE split skewed partitions)</pre>
+</section>
+
+<section>
+<h2>Fix 2: broadcast the small side (best when possible)</h2>
+<pre">from pyspark.sql.functions import broadcast
+
+customers = spark.table("lesson_db.customers")  # 200 rows — tiny!
+
+# If one side is small, broadcast it → no shuffle on the big side → no skew possible
+no_skew = orders.join(broadcast(customers), "customer_id")
+no_skew.explain("formatted")
+# BroadcastHashJoin — skew is impossible because orders never shuffles</pre>
+</section>
+
+<section>
+<h2>Fix 3: salt the hot key</h2>
+<pre># When you can't broadcast (both sides are large):
+# Add random salt to spread the hot key across multiple partitions
+
+SALT = 8  # number of buckets
+
+orders_salted = orders.withColumn("salt", (F.rand() * SALT).cast("int"))
+
+# Expand customers so each customer appears SALT times (once per salt value)
+customers_salted = (spark.table("lesson_db.customers")
+  .withColumn("salt",
+    F.explode(F.array([F.lit(i) for i in range(SALT)]))))
+
+# Join on (customer_id, salt) — hot key is now split across SALT tasks
+result = orders_salted.join(customers_salted, ["customer_id", "salt"])
+result.groupBy(F.spark_partition_id()).count().orderBy(F.desc("count")).show(5)</pre>
+<div class="box"><strong>Customer translation</strong>"One customer has half the rows, so one machine was doing half the work while the rest sat idle. Spreading that key across multiple tasks balances the load — all machines finish together."</div>
+</section>
+
+
+<!-- ── QUIZZES ──────────────────────────────────────────────────── -->
+<section>
+<h2>Knowledge checks</h2>
+
+<div class="quiz" id="q1">
+  <h3>One task in a stage runs 10x longer than the other 49. What's the most likely cause?</h3>
+  <ul class="opts">
+        <li onclick="ans(this,'q1',false)">The cluster ran out of memory for that executor.</li>
+        <li onclick="ans(this,'q1',true)">Data skew — one partition has far more rows than the others.</li>
+        <li onclick="ans(this,'q1',false)">That executor has slower hardware.</li>
+        <li onclick="ans(this,'q1',false)">Spark scheduled too many tasks for that executor.</li>
+  </ul>
+  <div class="fb" id="q1-fb"></div>
+</div>
+<div class="quiz" id="q2">
+  <h3>AQE skew join is on by default. Does that mean you never need to worry about skew?</h3>
+  <ul class="opts">
+        <li onclick="ans(this,'q2',false)">Yes — AQE handles all skew automatically.</li>
+        <li onclick="ans(this,'q2',true)">No — AQE splits skewed partitions in joins, but it can't fix skew in groupBy aggregations, and broadcasting the small side (if possible) is still faster.</li>
+        <li onclick="ans(this,'q2',false)">AQE only handles skew when spark.sql.adaptive.skewJoin.enabled is explicitly set to true.</li>
+        <li onclick="ans(this,'q2',false)">AQE handles skew but only on Databricks Premium.</li>
+  </ul>
+  <div class="fb" id="q2-fb"></div>
+</div>
+<div class="quiz" id="q3">
+  <h3>You can't broadcast (both sides are large, the hot key is a customer with 50% of rows). What technique spreads the load?</h3>
+  <ul class="opts">
+        <li onclick="ans(this,'q3',false)">Increase spark.sql.shuffle.partitions to force more tasks.</li>
+        <li onclick="ans(this,'q3',true)">Salt the hot key — add a random integer to the key and expand the small side to match, so the hot key is spread across multiple partitions.</li>
+        <li onclick="ans(this,'q3',false)">Use coalesce() before the join.</li>
+        <li onclick="ans(this,'q3',false)">Filter out the hot key entirely.</li>
+  </ul>
+  <div class="fb" id="q3-fb"></div>
+</div>
+</section>
+
+<!-- ── NARRATE IT BACK ─────────────────────────────────────────── -->
+<section>
+<h2>Narrate it back</h2>
+<div class="box i">
+  <strong>Interviewer prompt — say this out loud in under 45 seconds</strong>
+  "One task in a stage takes 8 minutes, the other 49 take 3 seconds. Walk me through diagnosing and fixing it."
+</div>
+<p><em>Cover: symptom = data skew → diagnose: groupBy(spark_partition_id()).count() to see which partition is huge → identify the hot key: groupBy('customer_id').count().orderBy(desc) → fixes in order: (1) AQE skew join is on by default — check if it's helping; (2) if the other side of the join is small, broadcast it — eliminates the shuffle entirely, no skew possible; (3) if both sides are large, salt the hot key: add random int, explode the other side, join on (key, salt)</em></p>
+</section>
+
+<!-- ── TEARDOWN ─────────────────────────────────────────────────── -->
+<section class="teardown-banner">
+<h2>🧹 Teardown — clean up after the lesson</h2>
+<button class="copy-btn" onclick="copyCode('teardown-code')">copy</button>
+<pre id="teardown-code"># Teardown — drop lesson tables when you're done
+spark.sql("DROP TABLE IF EXISTS lesson_db.orders")
+spark.sql("DROP TABLE IF EXISTS lesson_db.products")
+spark.sql("DROP TABLE IF EXISTS lesson_db.customers")
+spark.sql("DROP DATABASE IF EXISTS lesson_db")
+print("Teardown complete.")
+</pre>
+</section>
+
+<!-- ── DONE ────────────────────────────────────────────────────── -->
+<div class="done-box" id="done-box">
+  <h2 id="done-title">Lesson 10 — when you're ready</h2>
+  <p>Pass all three knowledge checks above to unlock the next lesson, or run this now to mark it complete:</p>
+  <div class="cmd">mise run teach:done 10</div>
+  <p style="color:var(--mut);font-size:.82rem;margin-top:.4rem">
+    <code>git add teach/ &amp;&amp; git commit -m "lesson 10 done" &amp;&amp; git push</code>
+  </p>
+  <br><a href="11-repartition-vs-coalesce.html" class="nxt-btn" id="nxt-btn" style="opacity:.45;pointer-events:none">11: Repartition vs Coalesce →</a>
+</div>
+
+<div class="nav" style="margin-top:1.5rem"><a href="09-udf-avoidance.html">← 09: UDF Avoidance</a><a href="11-repartition-vs-coalesce.html">11: Repartition vs Coalesce →</a></div>
+<footer>
+  <span>Source: <a href="../../04-Spark-Optimization-Playbook.md">04-Spark-Optimization-Playbook.md</a></span>
+  <span>
+    <a href="../reference/interview-cheatsheet.html">Cheat Sheet</a> ·
+    <a href="https://spark.apache.org/docs/3.5.0/api/python/" target="_blank">PySpark 3.5 API</a>
+  </span>
+</footer>
+
+</div>
+<script>
+const FB={
+  q1:{ok:"Correct. When one task runs much longer than the rest, data skew is the most common cause. One partition has a disproportionate share of rows (e.g., a hot join/group key). The stage can't complete until that task finishes.",no:"One outlier task = almost always data skew. One key has far more rows → one huge partition → one slow task."},
+  q2:{ok:"Correct. AQE skew join helps with join skew. For groupBy skew it's less effective. If one side of a join is small enough to broadcast, that eliminates the shuffle entirely — no skew possible. AQE is a safety net, not a complete solution.",no:"AQE helps with join skew but broadcasting the small side is better (eliminates the shuffle). AQE can't fix groupBy skew."},
+  q3:{ok:"Correct. Salting appends a random integer (0 to N-1) to the join key, splitting the hot key across N partitions. The smaller side must be expanded (explode the salt values) to match. This distributes the skewed load evenly.",no:"Salting = add random int to the key + explode the other side. Splits the hot key across N partitions."}
+};
+
+const TOTAL=3; let done=0; const answered={};
+function ans(el,qid,ok){
+  if(answered[qid])return; answered[qid]=true;
+  el.classList.add(ok?'ok':'no');
+  const fb=document.getElementById(qid+'-fb');
+  fb.innerHTML=(ok?'✓ ':'✗ ')+FB[qid][ok?'ok':'no'];
+  fb.className='fb show '+(ok?'ok':'no');
+  if(ok){done++; document.getElementById('pb').style.width=Math.round(done/TOTAL*100)+'%'; document.getElementById('pl').textContent=done+' / '+TOTAL+' checks';}
+  if(done===TOTAL){document.getElementById('done-title').textContent='Lesson complete ✓ — mark it done:';const b=document.getElementById('nxt-btn');if(b){b.style.opacity='1';b.style.pointerEvents='auto';}}
+}
+function copyCode(id){const el=document.getElementById(id);if(el){navigator.clipboard.writeText(el.textContent).then(()=>{}).catch(()=>{});}}
+
+</script>
+</body></html>

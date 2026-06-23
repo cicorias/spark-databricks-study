@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Lesson 06 — Broadcast Joins</title>
+<style>
+:root{--bg:#0f1117;--sur:#1a1d27;--bdr:#2e3147;--acc:#ff3621;--grn:#00a972;--txt:#e8eaf0;--mut:#8b8fa8;--cb:#12151e;--amb:#e8a020;--blu:#4a90e2}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:15px;line-height:1.7;padding:2rem 1rem}
+.page{max-width:800px;margin:0 auto}
+.lh{margin-bottom:2rem}
+.ln{color:var(--acc);font-size:.78rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+h1{font-size:1.85rem;font-weight:800;margin:.2rem 0 .4rem}
+.sub{color:var(--mut);font-size:1rem}
+.badges{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.6rem}
+.badge{font-size:.68rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:.2rem .55rem;border-radius:999px;border:1px solid var(--bdr);color:var(--mut)}
+.badge.p{border-color:var(--acc);color:var(--acc)}
+.nav{display:flex;justify-content:space-between;margin:1.5rem 0;font-size:.84rem;color:var(--mut)}
+.nav a{color:var(--grn);text-decoration:none}
+section{margin-bottom:2rem}
+h2{font-size:1rem;font-weight:700;color:var(--grn);margin-bottom:.6rem;border-bottom:1px solid var(--bdr);padding-bottom:.3rem}
+h3{font-size:.95rem;font-weight:600;margin:1rem 0 .3rem;color:var(--txt)}
+p{margin-bottom:.8rem}
+ul,ol{padding-left:1.4rem;margin-bottom:.8rem}
+li{margin-bottom:.3rem}
+pre{background:var(--cb);border:1px solid var(--bdr);border-radius:8px;padding:1rem 1.2rem;overflow-x:auto;font-size:.82rem;line-height:1.55;margin-bottom:.9rem;font-family:"JetBrains Mono","Fira Code","Cascadia Code",monospace;white-space:pre}
+p code,li code{background:var(--cb);border:1px solid var(--bdr);border-radius:3px;padding:.1em .35em;font-size:.82em;font-family:"JetBrains Mono","Fira Code",monospace}
+.box{border-left:3px solid var(--grn);background:var(--sur);border-radius:0 8px 8px 0;padding:.8rem 1.1rem;margin-bottom:.9rem}
+.box.w{border-left-color:var(--amb)}
+.box.i{border-left-color:var(--acc)}
+.box strong{display:block;margin-bottom:.25rem;font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;color:var(--mut)}
+/* setup / teardown banners */
+.setup-banner,.teardown-banner{border-radius:8px;padding:1rem 1.2rem;margin-bottom:1rem}
+.setup-banner{background:#0a1f14;border:1px solid #1a5c38}
+.setup-banner h2{color:#00d488;border-color:#1a5c38}
+.teardown-banner{background:#1a0e0a;border:1px solid #5c2a1a}
+.teardown-banner h2{color:#e87040;border-color:#5c2a1a}
+.copy-btn{float:right;background:transparent;border:1px solid var(--bdr);color:var(--mut);font-size:.72rem;padding:.2rem .55rem;border-radius:4px;cursor:pointer;font-family:monospace;margin-bottom:.3rem}
+.copy-btn:hover{border-color:var(--grn);color:var(--grn)}
+/* quiz */
+.quiz{background:var(--sur);border:1px solid var(--bdr);border-radius:10px;padding:1.2rem;margin-bottom:1.2rem}
+.quiz h3{margin-top:0;font-size:.93rem}
+.opts{list-style:none;padding:0;margin:.8rem 0}
+.opts li{padding:.5rem .9rem;border:1px solid var(--bdr);border-radius:7px;margin-bottom:.4rem;cursor:pointer;font-size:.87rem;transition:border-color .15s,background .15s}
+.opts li:hover{border-color:var(--grn);background:rgba(0,169,114,.05)}
+.opts li.ok{border-color:var(--grn);background:rgba(0,169,114,.12)}
+.opts li.no{border-color:var(--acc);background:rgba(255,54,33,.1)}
+.fb{display:none;font-size:.84rem;margin-top:.6rem;padding:.6rem .9rem;border-radius:7px}
+.fb.show{display:block}
+.fb.ok{background:rgba(0,169,114,.1);color:var(--grn)}
+.fb.no{background:rgba(255,54,33,.1);color:#ff7a6b}
+.pbw{background:var(--sur);border:1px solid var(--bdr);border-radius:999px;height:7px;overflow:hidden;margin-bottom:.3rem}
+.pb{height:100%;background:var(--grn);transition:width .4s;border-radius:999px;width:0%}
+.pl{font-size:.72rem;color:var(--mut);text-align:right}
+.done-box{text-align:center;padding:1.8rem;border:1px solid var(--bdr);border-radius:10px;background:var(--sur);margin-top:1.5rem}
+.done-box h2{border:none;color:var(--grn);font-size:1.3rem}
+.cmd{display:inline-block;background:var(--cb);border:1px solid var(--grn);border-radius:7px;padding:.5rem 1rem;font-family:monospace;font-size:.87rem;color:var(--grn);margin:.8rem 0}
+.nxt-btn{display:inline-block;margin-top:.4rem;padding:.6rem 1.4rem;background:var(--acc);color:white;font-weight:700;font-size:.87rem;border-radius:7px;text-decoration:none}
+footer{margin-top:2.5rem;padding-top:.9rem;border-top:1px solid var(--bdr);color:var(--mut);font-size:.78rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:.4rem}
+footer a{color:var(--mut)}
+</style>
+</head>
+<body><div class="page">
+
+<div class="lh">
+  <div class="ln">Lesson 06 of 19</div>
+  <h1>Broadcast Joins</h1>
+  <p class="sub">Lever 1: eliminate the big-side shuffle entirely</p>
+  <div class="badges"><span class="badge p">Code Stewardship</span><span class="badge">Computational Thinking</span></div>
+</div>
+
+<div class="pbw"><div class="pb" id="pb"></div></div>
+<p class="pl" id="pl">0 / 3 checks</p>
+
+<div class="nav"><a href="05-catalyst-and-aqe.html">← 05: Catalyst &amp; AQE</a><a href="07-filter-and-project-early.html">07: Filter Early →</a></div>
+
+<!-- ── SETUP ────────────────────────────────────────────────────── -->
+<section class="setup-banner">
+<h2>🛠 Setup — run this cell first</h2>
+<p>Paste into a Databricks notebook cell and run before working through the examples below.</p>
+<button class="copy-btn" onclick="copyCode('setup-code')">copy</button>
+<pre id="setup-code"># Shared setup — creates Delta tables used across lessons 02-11
+# Run once per cluster session; safe to re-run (uses overwrite mode)
+
+from pyspark.sql import functions as F
+from pyspark.sql.types import *
+import random, datetime
+
+spark.sql("CREATE DATABASE IF NOT EXISTS lesson_db")
+
+# ── fact table: 500k order rows ──────────────────────────────────────────────
+orders_schema = StructType([
+    StructField("order_id",    LongType(),   False),
+    StructField("customer_id", IntegerType(),False),
+    StructField("product_id",  IntegerType(),False),
+    StructField("country",     StringType(), False),
+    StructField("amount",      DoubleType(), False),
+    StructField("year",        IntegerType(),False),
+    StructField("order_date",  DateType(),   False),
+])
+rows = []
+countries = ["US","US","US","US","GB","DE","FR","BR","IN","JP"]
+for i in range(500_000):
+    cid = random.randint(1, 200)    # 200 customers, skewed toward low ids
+    if cid <= 5: cid = 1            # customer 1 = hot key (skew demo)
+    rows.append((
+        i, cid, random.randint(1,100),
+        countries[random.randint(0,9)],
+        round(random.uniform(5.0, 2000.0), 2),
+        random.choice([2023,2024,2025]),
+        datetime.date(random.choice([2023,2024,2025]),
+                      random.randint(1,12), random.randint(1,28))
+    ))
+orders_df = spark.createDataFrame(rows, orders_schema)
+(orders_df.write.mode("overwrite").format("delta")
+    .partitionBy("year")
+    .saveAsTable("lesson_db.orders"))
+
+# ── dimension table: 100 products (small — broadcast candidate) ──────────────
+products_df = spark.createDataFrame(
+    [(i, f"Product {i}", ["Electronics","Clothing","Food","Sports"][i%4],
+      round(10 + i * 2.5, 2))
+     for i in range(1, 101)],
+    ["product_id","name","category","list_price"]
+)
+(products_df.write.mode("overwrite").format("delta")
+    .saveAsTable("lesson_db.products"))
+
+# ── customers dimension (200 rows, skewed: customer 1 has most orders) ────────
+customers_df = spark.createDataFrame(
+    [(i, f"Customer {i}", ["US","GB","DE","FR","BR"][i%5])
+     for i in range(1, 201)],
+    ["customer_id","name","region"]
+)
+(customers_df.write.mode("overwrite").format("delta")
+    .saveAsTable("lesson_db.customers"))
+
+print("Setup complete. Tables: lesson_db.orders, lesson_db.products, lesson_db.customers")
+spark.sql("SELECT year, COUNT(*) as cnt FROM lesson_db.orders GROUP BY year ORDER BY year").show()
+</pre>
+</section>
+
+<!-- ── LESSON BODY ──────────────────────────────────────────────── -->
+
+<section>
+<h2>The problem: sort-merge join shuffles both sides</h2>
+<pre>from pyspark.sql import functions as F
+orders   = spark.table("lesson_db.orders")    # 500k rows — fact table
+products = spark.table("lesson_db.products")  # 100 rows  — dimension table
+
+# Default join: Spark shuffles BOTH sides by product_id
+bad = orders.join(products, "product_id")
+bad.explain("formatted")
+# Look for: SortMergeJoin or BroadcastHashJoin
+# If Spark auto-broadcasts products (it may, since 100 rows is tiny),
+# check spark.sql.autoBroadcastJoinThreshold and try with a bigger dim table</pre>
+</section>
+
+<section>
+<h2>The fix: broadcast the small side</h2>
+<pre>from pyspark.sql.functions import broadcast
+
+# Explicit broadcast hint: products (100 rows) is sent to every executor
+# orders (500k rows) NEVER moves — no shuffle on the big side
+good = orders.join(broadcast(products), "product_id")
+good.explain("formatted")
+# Look for: BroadcastHashJoin (no Exchange on the orders side)
+
+# Compare plans — the Exchange on the left side disappears
+print("=== WITHOUT broadcast ===")
+orders.join(products.hint("no_broadcast"), "product_id").explain()
+print("=== WITH broadcast ===")
+orders.join(broadcast(products), "product_id").explain()</pre>
+<div class="box"><strong>Customer translation</strong>"The product lookup is 100 rows. Instead of reshuffling 500,000 order rows across the cluster, we send the tiny product table to every machine. The big table stays put — that's the difference between minutes and seconds."</div>
+</section>
+
+<section>
+<h2>When to use / when not to</h2>
+<pre># Check the actual size before deciding to broadcast
+products.count()   # 100 rows — safe
+# Rule of thumb: broadcast if ≤ ~100 MB
+
+# AQE can auto-broadcast at runtime
+print("Auto-broadcast threshold:", spark.conf.get("spark.sql.autoBroadcastJoinThreshold"))
+# Default: 10MB. AQE raises this adaptively.
+
+# Dangerous: broadcasting something unexpectedly large
+# large_table = spark.table("lesson_db.orders")
+# orders.join(broadcast(large_table), "customer_id")
+# ↑ This would send 500k rows to EVERY executor → OOM risk</pre>
+<div class="box w"><strong>Always verify size</strong>Broadcasting a large table sends a full copy to every executor. If it OOMs one executor, the whole stage fails. Verify: <code>spark.table("dim").count()</code> or check DESCRIBE DETAIL.</div>
+</section>
+
+
+<!-- ── QUIZZES ──────────────────────────────────────────────────── -->
+<section>
+<h2>Knowledge checks</h2>
+
+<div class="quiz" id="q1">
+  <h3>orders.join(products, 'product_id') shows SortMergeJoin in explain(). products has 100 rows. What's the fix?</h3>
+  <ul class="opts">
+        <li onclick="ans(this,'q1',true)">orders.join(broadcast(products), 'product_id')</li>
+        <li onclick="ans(this,'q1',false)">products.join(orders, 'product_id')</li>
+        <li onclick="ans(this,'q1',false)">orders.repartition(100, 'product_id').join(products, 'product_id')</li>
+        <li onclick="ans(this,'q1',false)">spark.conf.set('spark.sql.sortMerge.enabled', 'false')</li>
+  </ul>
+  <div class="fb" id="q1-fb"></div>
+</div>
+<div class="quiz" id="q2">
+  <h3>After adding broadcast(products), what do you expect to see in explain()?</h3>
+  <ul class="opts">
+        <li onclick="ans(this,'q2',false)">SortMergeJoin — the hint doesn't change the physical strategy.</li>
+        <li onclick="ans(this,'q2',true)">BroadcastHashJoin with no Exchange on the orders (large) side.</li>
+        <li onclick="ans(this,'q2',false)">BroadcastNestedLoopJoin.</li>
+        <li onclick="ans(this,'q2',false)">No change until you call an action.</li>
+  </ul>
+  <div class="fb" id="q2-fb"></div>
+</div>
+<div class="quiz" id="q3">
+  <h3>When would broadcast() cause executors to OOM?</h3>
+  <ul class="opts">
+        <li onclick="ans(this,'q3',false)">When the fact table has more than 1 billion rows.</li>
+        <li onclick="ans(this,'q3',true)">When the broadcast table is actually large — every executor receives a full copy.</li>
+        <li onclick="ans(this,'q3',false)">When AQE is enabled.</li>
+        <li onclick="ans(this,'q3',false)">When the join key is a string.</li>
+  </ul>
+  <div class="fb" id="q3-fb"></div>
+</div>
+</section>
+
+<!-- ── NARRATE IT BACK ─────────────────────────────────────────── -->
+<section>
+<h2>Narrate it back</h2>
+<div class="box i">
+  <strong>Interviewer prompt — say this out loud in under 45 seconds</strong>
+  "I have a 500M-row transactions table joining a 10,000-row store lookup. Walk me through the optimization."
+</div>
+<p><em>Cover: default sort-merge join shuffles both 500M rows and 10k rows by key — huge network cost → the store table is tiny → broadcast it: fact.join(broadcast(stores), 'store_id') → every executor gets the 10k store rows, transactions never move → explain() shows BroadcastHashJoin with no Exchange on the fact side → customer translation: instead of reshuffling half a billion rows we send a tiny copy to every machine</em></p>
+</section>
+
+<!-- ── TEARDOWN ─────────────────────────────────────────────────── -->
+<section class="teardown-banner">
+<h2>🧹 Teardown — clean up after the lesson</h2>
+<button class="copy-btn" onclick="copyCode('teardown-code')">copy</button>
+<pre id="teardown-code"># Teardown — drop lesson tables when you're done
+spark.sql("DROP TABLE IF EXISTS lesson_db.orders")
+spark.sql("DROP TABLE IF EXISTS lesson_db.products")
+spark.sql("DROP TABLE IF EXISTS lesson_db.customers")
+spark.sql("DROP DATABASE IF EXISTS lesson_db")
+print("Teardown complete.")
+</pre>
+</section>
+
+<!-- ── DONE ────────────────────────────────────────────────────── -->
+<div class="done-box" id="done-box">
+  <h2 id="done-title">Lesson 06 — when you're ready</h2>
+  <p>Pass all three knowledge checks above to unlock the next lesson, or run this now to mark it complete:</p>
+  <div class="cmd">mise run teach:done 06</div>
+  <p style="color:var(--mut);font-size:.82rem;margin-top:.4rem">
+    <code>git add teach/ &amp;&amp; git commit -m "lesson 06 done" &amp;&amp; git push</code>
+  </p>
+  <br><a href="07-filter-and-project-early.html" class="nxt-btn" id="nxt-btn" style="opacity:.45;pointer-events:none">07: Filter Early →</a>
+</div>
+
+<div class="nav" style="margin-top:1.5rem"><a href="05-catalyst-and-aqe.html">← 05: Catalyst &amp; AQE</a><a href="07-filter-and-project-early.html">07: Filter Early →</a></div>
+<footer>
+  <span>Source: <a href="../../04-Spark-Optimization-Playbook.md">04-Spark-Optimization-Playbook.md</a></span>
+  <span>
+    <a href="../reference/interview-cheatsheet.html">Cheat Sheet</a> ·
+    <a href="https://spark.apache.org/docs/3.5.0/api/python/" target="_blank">PySpark 3.5 API</a>
+  </span>
+</footer>
+
+</div>
+<script>
+const FB={
+  q1:{ok:"Correct. Wrapping the small side in broadcast() sends products to every executor so orders never needs to shuffle. You'll see BroadcastHashJoin instead of SortMergeJoin in the plan.",no:"broadcast() on the small side = big side never shuffles. The fix is orders.join(broadcast(products), 'product_id')."},
+  q2:{ok:"Correct. BroadcastHashJoin replaces SortMergeJoin, and the Exchange node on the large side disappears. That missing Exchange is proof the 500k-row table never shuffled.",no:"After broadcast(): BroadcastHashJoin in plan, no Exchange on the large side."},
+  q3:{ok:"Correct. Every executor gets a full copy of the broadcast table. If products was actually 500 MB rather than tiny, broadcasting it to 10 executors means 5 GB of memory just for the broadcast, on top of everything else. Always check.",no:"broadcast sends a FULL COPY to every executor. Large broadcast table × many executors = OOM."}
+};
+
+const TOTAL=3; let done=0; const answered={};
+function ans(el,qid,ok){
+  if(answered[qid])return; answered[qid]=true;
+  el.classList.add(ok?'ok':'no');
+  const fb=document.getElementById(qid+'-fb');
+  fb.innerHTML=(ok?'✓ ':'✗ ')+FB[qid][ok?'ok':'no'];
+  fb.className='fb show '+(ok?'ok':'no');
+  if(ok){done++; document.getElementById('pb').style.width=Math.round(done/TOTAL*100)+'%'; document.getElementById('pl').textContent=done+' / '+TOTAL+' checks';}
+  if(done===TOTAL){document.getElementById('done-title').textContent='Lesson complete ✓ — mark it done:';const b=document.getElementById('nxt-btn');if(b){b.style.opacity='1';b.style.pointerEvents='auto';}}
+}
+function copyCode(id){const el=document.getElementById(id);if(el){navigator.clipboard.writeText(el.textContent).then(()=>{}).catch(()=>{});}}
+
+</script>
+</body></html>

@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lesson 01 — Lazy Eval &amp; Actions</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --border: #2e3147;
+    --accent: #ff3621;
+    --accent2: #00a972;
+    --text: #e8eaf0;
+    --muted: #8b8fa8;
+    --code-bg: #12151e;
+    --warn: #e8a020;
+    font-size: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    line-height: 1.7;
+    padding: 2rem 1rem;
+  }
+  .page { max-width: 780px; margin: 0 auto; }
+
+  /* header */
+  .lesson-header { margin-bottom: 2.5rem; }
+  .lesson-num { color: var(--accent); font-size: 0.8rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
+  h1 { font-size: 2rem; font-weight: 800; margin: 0.25rem 0 0.5rem; }
+  .subtitle { color: var(--muted); font-size: 1rem; }
+  .signal-badges { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.75rem; }
+  .badge {
+    font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 0.2rem 0.6rem; border-radius: 999px; border: 1px solid var(--border);
+    color: var(--muted);
+  }
+  .badge.primary { border-color: var(--accent); color: var(--accent); }
+
+  /* nav */
+  .lesson-nav { display: flex; justify-content: space-between; margin: 2rem 0; font-size: 0.85rem; color: var(--muted); }
+  .lesson-nav a { color: var(--accent2); text-decoration: none; }
+  .lesson-nav a:hover { text-decoration: underline; }
+
+  /* sections */
+  section { margin-bottom: 2.5rem; }
+  h2 { font-size: 1.15rem; font-weight: 700; color: var(--accent2); margin-bottom: 0.75rem;
+       border-bottom: 1px solid var(--border); padding-bottom: 0.4rem; }
+  h3 { font-size: 1rem; font-weight: 600; margin: 1.2rem 0 0.4rem; }
+  p { margin-bottom: 0.9rem; }
+  ul, ol { padding-left: 1.5rem; margin-bottom: 0.9rem; }
+  li { margin-bottom: 0.35rem; }
+
+  /* code */
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1.2rem 1.4rem; overflow-x: auto;
+    font-size: 0.85rem; line-height: 1.6; margin-bottom: 1rem;
+  }
+  code { font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", monospace; }
+  p code, li code {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 4px; padding: 0.1em 0.4em; font-size: 0.85em;
+  }
+  .comment { color: #5c6370; }
+  .kw { color: #c678dd; }
+  .fn { color: #61afef; }
+  .str { color: #98c379; }
+  .num { color: #d19a66; }
+  .cls { color: #e5c07b; }
+
+  /* callouts */
+  .callout {
+    border-left: 3px solid var(--accent2); background: var(--surface);
+    border-radius: 0 8px 8px 0; padding: 0.9rem 1.2rem; margin-bottom: 1rem;
+  }
+  .callout.warn { border-left-color: var(--warn); }
+  .callout.interview { border-left-color: var(--accent); }
+  .callout strong { display: block; margin-bottom: 0.3rem; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+
+  /* quiz */
+  .quiz { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
+  .quiz h3 { margin-top: 0; color: var(--text); font-size: 1rem; }
+  .quiz-options { list-style: none; padding: 0; margin: 1rem 0; }
+  .quiz-options li {
+    padding: 0.6rem 1rem; border: 1px solid var(--border); border-radius: 8px;
+    margin-bottom: 0.5rem; cursor: pointer; transition: border-color 0.15s, background 0.15s;
+    font-size: 0.9rem;
+  }
+  .quiz-options li:hover { border-color: var(--accent2); background: rgba(0,169,114,0.05); }
+  .quiz-options li.correct { border-color: var(--accent2); background: rgba(0,169,114,0.12); }
+  .quiz-options li.wrong { border-color: var(--accent); background: rgba(255,54,33,0.1); }
+  .quiz-feedback { display: none; font-size: 0.88rem; margin-top: 0.75rem; padding: 0.75rem 1rem; border-radius: 8px; }
+  .quiz-feedback.show { display: block; }
+  .quiz-feedback.ok { background: rgba(0,169,114,0.1); color: var(--accent2); }
+  .quiz-feedback.fail { background: rgba(255,54,33,0.1); color: #ff7a6b; }
+
+  /* progress */
+  .progress-bar-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 999px; height: 8px; overflow: hidden; margin-bottom: 0.4rem; }
+  .progress-bar { height: 100%; background: var(--accent2); transition: width 0.4s; border-radius: 999px; }
+  .progress-label { font-size: 0.75rem; color: var(--muted); text-align: right; }
+
+  /* completion */
+  .completion-section { text-align: center; padding: 2rem; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+  .completion-section h2 { border: none; color: var(--accent2); font-size: 1.4rem; }
+  .cmd-box {
+    display: inline-block; background: var(--code-bg); border: 1px solid var(--accent2);
+    border-radius: 8px; padding: 0.6rem 1.2rem; font-family: monospace; font-size: 0.9rem;
+    color: var(--accent2); margin: 1rem 0;
+  }
+  .next-btn {
+    display: inline-block; margin-top: 0.5rem; padding: 0.65rem 1.6rem;
+    background: var(--accent); color: white; font-weight: 700; font-size: 0.9rem;
+    border-radius: 8px; text-decoration: none; cursor: pointer; border: none;
+  }
+  .next-btn:hover { opacity: 0.85; }
+
+  /* footer */
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.8rem; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; }
+  footer a { color: var(--muted); }
+  footer a:hover { color: var(--text); }
+
+  /* setup / teardown banners */
+  .setup-banner,.teardown-banner { border-radius: 8px; padding: 1rem 1.2rem; margin-bottom: 1.5rem; }
+  .setup-banner { background: #0a1f14; border: 1px solid #1a5c38; }
+  .setup-banner h2 { color: #00d488; border-color: #1a5c38; }
+  .teardown-banner { background: #1a0e0a; border: 1px solid #5c2a1a; }
+  .teardown-banner h2 { color: #e87040; border-color: #5c2a1a; }
+  .copy-btn { float: right; background: transparent; border: 1px solid var(--border); color: var(--muted); font-size: 0.72rem; padding: 0.2rem 0.55rem; border-radius: 4px; cursor: pointer; font-family: monospace; margin-bottom: 0.3rem; }
+  .copy-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="lesson-header">
+    <div class="lesson-num">Lesson 01 of 19</div>
+    <h1>Lazy Eval &amp; Actions</h1>
+    <p class="subtitle">Why Spark builds a plan first — and the one rule that will save you from invisible slowness</p>
+    <div class="signal-badges">
+      <span class="badge primary">Computational Thinking</span>
+      <span class="badge">Code Stewardship</span>
+    </div>
+  </div>
+
+  <div class="progress-bar-wrap"><div class="progress-bar" id="pbar" style="width:0%"></div></div>
+  <p class="progress-label" id="plabel">0 / 3 checks complete</p>
+
+  <div class="lesson-nav">
+    <span>← Curriculum</span>
+    <a href="02-partitions-and-parallelism.html">Lesson 02: Partitions &amp; Parallelism →</a>
+  </div>
+
+  <!-- ── SETUP ────────────────────────────────────────────────── -->
+  <section class="setup-banner">
+    <h2>🛠 Setup — run this cell first</h2>
+    <p>Paste into a Databricks notebook cell and run before working through the examples below.</p>
+    <button class="copy-btn" onclick="copyCode('setup-code')">copy</button>
+    <pre id="setup-code"># Lesson 01 setup — creates Delta tables used in the examples
+# Run once per cluster session; safe to re-run (uses overwrite mode)
+
+from pyspark.sql import functions as F
+from pyspark.sql.types import *
+from pyspark.sql.functions import broadcast
+import random, datetime
+
+spark.sql("CREATE DATABASE IF NOT EXISTS lesson_db")
+
+# ── orders: 500k rows, partitioned by year, customer 1 is skewed ─────────────
+orders_schema = StructType([
+    StructField("order_id",    LongType(),   False),
+    StructField("customer_id", IntegerType(),False),
+    StructField("product_id",  IntegerType(),False),
+    StructField("country",     StringType(), False),
+    StructField("amount",      DoubleType(), False),
+    StructField("year",        IntegerType(),False),
+    StructField("order_date",  DateType(),   False),
+])
+rows = []
+countries = ["US","US","US","US","GB","DE","FR","BR","IN","JP"]
+for i in range(500_000):
+    cid = random.randint(1, 200)
+    if cid <= 5: cid = 1    # customer 1 = hot key for skew demos
+    rows.append((
+        i, cid, random.randint(1,100),
+        countries[random.randint(0,9)],
+        round(random.uniform(5.0, 2000.0), 2),
+        random.choice([2023,2024,2025]),
+        datetime.date(random.choice([2023,2024,2025]),
+                      random.randint(1,12), random.randint(1,28))
+    ))
+orders_df = spark.createDataFrame(rows, orders_schema)
+(orders_df.write.mode("overwrite").format("delta")
+    .partitionBy("year")
+    .saveAsTable("lesson_db.orders"))
+
+# ── customers: 200 rows (small — broadcast candidate) ────────────────────────
+customers_df = spark.createDataFrame(
+    [(i, f"Customer {i}", ["US","GB","DE","FR","BR"][i%5])
+     for i in range(1, 201)],
+    ["customer_id","name","region"]
+)
+(customers_df.write.mode("overwrite").format("delta")
+    .saveAsTable("lesson_db.customers"))
+
+print("Setup complete.")
+spark.sql("SELECT year, COUNT(*) as cnt FROM lesson_db.orders GROUP BY year ORDER BY year").show()
+</pre>
+  </section>
+
+  <!-- WHY IT MATTERS FOR THE INTERVIEW -->
+  <section>
+    <h2>Why this lesson exists</h2>
+    <p>The recruiter email says: <em>"Be prepared to talk about how your code scales."</em> Everything in Spark starts with one question: <strong>when does my code actually execute?</strong> If you can't answer that, you can't explain performance, you can't find bugs, and you can't impress an FDE who lives in this runtime every day.</p>
+    <p>This concept also directly explains the single most common interview trap: adding a <code>count()</code> "just to check" and accidentally triggering a full pipeline re-run.</p>
+  </section>
+
+  <!-- THE MENTAL MODEL -->
+  <section>
+    <h2>The core model: Plan → Execute</h2>
+    <p>Spark is <strong>lazy</strong>. When you write a transformation, Spark does not run anything — it records your intent as a logical plan. Execution only happens when you call an <strong>action</strong>.</p>
+
+    <div class="callout">
+      <strong>One-liner for the interview</strong>
+      "Transformations are lazy — they just extend the logical plan. The cost only lands when I call an action like <code>write</code> or <code>count</code>. This lets the optimizer see the whole chain before spending a single CPU cycle."
+    </div>
+
+    <h3>Transformations (lazy — return a DataFrame)</h3>
+    <p>These build the plan. Nothing runs. Nothing is evaluated. You can chain hundreds and Spark will not move a byte:</p>
+    <pre><code><span class="comment"># All of this is just a plan. Zero execution.</span>
+df = spark.<span class="fn">table</span>(<span class="str">"lesson_db.orders"</span>)
+filtered = df.<span class="fn">filter</span>(df.year == <span class="num">2024</span>)
+selected = filtered.<span class="fn">select</span>(<span class="str">"customer_id"</span>, <span class="str">"country"</span>, <span class="str">"amount"</span>)
+customers = spark.<span class="fn">table</span>(<span class="str">"lesson_db.customers"</span>)
+joined   = selected.<span class="fn">join</span>(<span class="fn">broadcast</span>(customers), <span class="str">"customer_id"</span>)
+grouped  = joined.<span class="fn">groupBy</span>(<span class="str">"country"</span>).<span class="fn">agg</span>(F.<span class="fn">sum</span>(<span class="str">"amount"</span>))</code></pre>
+
+    <h3>Actions (eager — trigger a job)</h3>
+    <p>These tell Spark: <em>"Now execute the whole plan and give me a result."</em> The moment you call one, a Spark <strong>job</strong> is submitted:</p>
+    <pre><code>grouped.<span class="fn">count</span>()          <span class="comment"># → triggers execution (returns a number)</span>
+grouped.<span class="fn">show</span>(<span class="num">10</span>)         <span class="comment"># → triggers execution (prints rows)</span>
+grouped.<span class="fn">collect</span>()        <span class="comment"># → triggers execution (pulls all rows to driver)</span>
+grouped.<span class="fn">write</span>.<span class="fn">format</span>(<span class="str">"delta"</span>).<span class="fn">save</span>(<span class="str">"..."</span>)  <span class="comment"># → triggers execution</span>
+grouped.<span class="fn">toPandas</span>()       <span class="comment"># → triggers execution (dangerous on large data!)</span></code></pre>
+
+    <div class="callout warn">
+      <strong>⚠ Common interview trap</strong>
+      <code>count()</code> inside a loop, or as a "quick sanity check," executes the <em>entire upstream pipeline</em> every time. It's a silent performance killer. If you spot this in the slow app you're given — call it out.
+    </div>
+  </section>
+
+  <!-- WHY LAZINESS IS GOOD -->
+  <section>
+    <h2>Why laziness is actually powerful</h2>
+    <p>Lazy evaluation gives the <strong>Catalyst optimizer</strong> a complete picture of your intent before it runs anything. With that global view it can:</p>
+    <ul>
+      <li><strong>Push filters down</strong> — apply <code>WHERE year = 2024</code> at the file scan, reading only the rows you need</li>
+      <li><strong>Prune columns</strong> — skip columns that are never referenced downstream</li>
+      <li><strong>Reorder operations</strong> — move cheap operations (filters) before expensive ones (joins)</li>
+      <li><strong>Choose join strategies</strong> — decide broadcast vs sort-merge based on table sizes</li>
+    </ul>
+    <p>This is why <strong>declarative DataFrame/SQL code beats hand-rolled Python loops</strong>: the optimizer can only help you if you express intent as a plan, not as imperative steps.</p>
+
+    <div class="callout interview">
+      <strong>Interview talking point</strong>
+      "Catalyst can't optimize what it can't see. If I drop to a Python loop or a regular UDF, I break out of the optimized path. That's one reason I always prefer built-in Spark functions — they stay inside the plan."
+    </div>
+  </section>
+
+  <!-- PRACTICAL DIAGNOSTICS -->
+  <section>
+    <h2>Practical: reading your own plan</h2>
+    <p>You can inspect the plan Spark built without executing anything:</p>
+    <pre><code><span class="comment"># Build the plan and inspect it — zero execution until an action</span>
+df = spark.<span class="fn">table</span>(<span class="str">"lesson_db.orders"</span>)
+plan_df = df.<span class="fn">filter</span>(df.year == <span class="num">2024</span>).<span class="fn">select</span>(<span class="str">"customer_id"</span>, <span class="str">"country"</span>, <span class="str">"amount"</span>)
+
+<span class="comment"># Shows Parsed → Analyzed → Optimized → Physical plan</span>
+plan_df.<span class="fn">explain</span>(<span class="str">"formatted"</span>)
+
+<span class="comment"># Quick: just the physical plan (look for PushedFilters, Exchange nodes)</span>
+plan_df.<span class="fn">explain</span>()</code></pre>
+    <p>In the physical plan, look for <code>PushedFilters</code> on scans (good — Catalyst pushed it down), <code>Exchange</code> nodes (shuffles — expensive), and <code>BroadcastHashJoin</code> vs <code>SortMergeJoin</code>.</p>
+  </section>
+
+  <!-- KNOWLEDGE CHECK -->
+  <section>
+    <h2>Knowledge checks</h2>
+
+    <div class="quiz" id="q1">
+      <h3>Q1 — Which of the following triggers Spark to execute the pipeline?</h3>
+      <ul class="quiz-options">
+        <li onclick="answer(this,'q1',false)">df.filter(col("year") == 2024)</li>
+        <li onclick="answer(this,'q1',false)">df.withColumn("full_name", concat("first","last"))</li>
+        <li onclick="answer(this,'q1',true)">df.count()</li>
+        <li onclick="answer(this,'q1',false)">df.join(other, "id")</li>
+      </ul>
+      <div class="quiz-feedback" id="q1-fb"></div>
+    </div>
+
+    <div class="quiz" id="q2">
+      <h3>Q2 — A teammate says "I added <code>df.count()</code> at the end of every stage so I can check row counts in the logs." What's the problem?</h3>
+      <ul class="quiz-options">
+        <li onclick="answer(this,'q2',false)">count() is deprecated — use len(df) instead</li>
+        <li onclick="answer(this,'q2',true)">Each count() call triggers a full execution of the upstream plan, so N stages means N full re-runs</li>
+        <li onclick="answer(this,'q2',false)">count() only works on cached DataFrames</li>
+        <li onclick="answer(this,'q2',false)">count() is a transformation, not an action, so it accumulates memory</li>
+      </ul>
+      <div class="quiz-feedback" id="q2-fb"></div>
+    </div>
+
+    <div class="quiz" id="q3">
+      <h3>Q3 — Why does the Catalyst optimizer prefer you to use built-in Spark functions over Python UDFs?</h3>
+      <ul class="quiz-options">
+        <li onclick="answer(this,'q3',false)">Built-in functions are written in Python and therefore faster to parse</li>
+        <li onclick="answer(this,'q3',false)">Python UDFs require a GPU to execute</li>
+        <li onclick="answer(this,'q3',true)">Built-in functions stay inside the Catalyst/Tungsten optimized path; Python UDFs break out of it — Spark can't see into them, can't optimize them, and must serialize data row-by-row to the Python process</li>
+        <li onclick="answer(this,'q3',false)">Python UDFs trigger an action on every row</li>
+      </ul>
+      <div class="quiz-feedback" id="q3-fb"></div>
+    </div>
+  </section>
+
+  <!-- NARRATE IT BACK -->
+  <section>
+    <h2>Narrate it back (interview simulation)</h2>
+    <p>Close this lesson. In the next 60 seconds, say out loud — as if you're explaining to an FDE sitting next to you — the answer to this question:</p>
+    <div class="callout interview">
+      <strong>Interviewer prompt</strong>
+      "Walk me through what happens when I call <code>df.groupBy('country').agg(sum('amount')).count()</code> — from the moment I hit run to when the number appears."
+    </div>
+    <p>A good answer covers: transformations build the plan → action triggers Catalyst optimization → physical plan with Exchange/shuffle nodes → job submitted → stages at shuffle boundaries → tasks per partition → result returned to driver.</p>
+    <p><em>If you can say this fluently in under 45 seconds, you're ready on this topic.</em></p>
+  </section>
+
+  <!-- TEARDOWN -->
+  <section class="teardown-banner">
+    <h2>🧹 Teardown — clean up after the lesson</h2>
+    <button class="copy-btn" onclick="copyCode('teardown-code')">copy</button>
+    <pre id="teardown-code"># Teardown lesson 01 — drop tables created in setup
+spark.sql("DROP TABLE IF EXISTS lesson_db.orders")
+spark.sql("DROP TABLE IF EXISTS lesson_db.customers")
+spark.sql("DROP DATABASE IF EXISTS lesson_db")
+print("Teardown complete.")</pre>
+  </section>
+
+  <!-- COMPLETION -->
+  <div class="completion-section" id="completion" style="display:none">
+    <h2>Lesson 01 complete ✓</h2>
+    <p>Record your progress so you can resume from any machine:</p>
+    <div class="cmd-box">mise run teach:done 01</div>
+    <p style="color:var(--muted); font-size:0.85rem; margin-top:0.5rem;">Then <code>git add teach/ && git commit -m "complete lesson 01" && git push</code></p>
+    <br>
+    <a href="02-partitions-and-parallelism.html" class="next-btn">Next: Partitions &amp; Parallelism →</a>
+  </div>
+
+  <div class="lesson-nav" style="margin-top:2rem">
+    <span>← Curriculum</span>
+    <a href="02-partitions-and-parallelism.html">Lesson 02: Partitions &amp; Parallelism →</a>
+  </div>
+
+  <footer>
+    <span>Source: <a href="../../03-Spark-Mental-Models.md">03-Spark-Mental-Models.md</a></span>
+    <span>
+      <a href="https://spark.apache.org/docs/3.5.0/api/python/" target="_blank">PySpark 3.5 API</a> ·
+      <a href="https://docs.databricks.com/optimizations/index.html" target="_blank">Databricks Optimizations</a>
+    </span>
+  </footer>
+
+</div>
+
+<script>
+  const TOTAL = 3;
+  let done = 0;
+  const answered = {};
+
+  const feedback = {
+    q1: {
+      ok: "Correct. <code>count()</code> is an action — it forces Spark to execute the full upstream plan and return a number to the driver.",
+      fail: "Not quite. <code>filter</code>, <code>withColumn</code>, and <code>join</code> are all transformations — lazy, they just extend the plan. Only actions like <code>count()</code>, <code>show()</code>, <code>collect()</code>, or <code>write</code> trigger execution."
+    },
+    q2: {
+      ok: "Exactly. Each <code>count()</code> is an independent action. Spark re-executes the entire upstream chain from scratch (unless you've persisted/cached). In a 6-stage pipeline that's 6× the compute you need.",
+      fail: "Think about what 'action' means. Every <code>count()</code> tells Spark 'execute the whole plan up to this point and return the number.' There's no shared memory between calls unless you explicitly cache."
+    },
+    q3: {
+      ok: "Correct. Catalyst can only optimize expressions it understands natively. A Python UDF is a black box — Spark serializes each row to Python (slow), calls your function, serializes back. No code generation, no vectorization, no pushdown.",
+      fail: "The key is the optimization boundary. Built-in functions are first-class citizens in the Catalyst plan — they can be fused, code-generated, and optimized. Python UDFs are opaque — Spark can't look inside them."
+    }
+  };
+
+  function answer(el, qid, correct) {
+    if (answered[qid]) return;
+    answered[qid] = true;
+    const fb = document.getElementById(qid + '-fb');
+    el.classList.add(correct ? 'correct' : 'wrong');
+    fb.innerHTML = (correct ? '✓ ' : '✗ ') + feedback[qid][correct ? 'ok' : 'fail'];
+    fb.className = 'quiz-feedback show ' + (correct ? 'ok' : 'fail');
+    if (correct) {
+      done++;
+      updateProgress();
+    }
+    if (done === TOTAL) {
+      document.getElementById('completion').style.display = 'block';
+      document.getElementById('completion').scrollIntoView({ behavior: 'smooth' });
+    }
+  }
+
+  function copyCode(id) {
+    const text = document.getElementById(id).textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.querySelector(`[onclick="copyCode('${id}')"]`);
+      const orig = btn.textContent;
+      btn.textContent = 'copied!';
+      setTimeout(() => btn.textContent = orig, 1500);
+    });
+  }
+
+  function updateProgress() {
+    const pct = Math.round((done / TOTAL) * 100);
+    document.getElementById('pbar').style.width = pct + '%';
+    document.getElementById('plabel').textContent = done + ' / ' + TOTAL + ' checks complete';
+  }
+</script>
+</body>
+</html>

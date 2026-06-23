@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Lesson 02 — Partitions &amp; Parallelism</title>
+<style>
+:root{--bg:#0f1117;--sur:#1a1d27;--bdr:#2e3147;--acc:#ff3621;--grn:#00a972;--txt:#e8eaf0;--mut:#8b8fa8;--cb:#12151e;--amb:#e8a020;--blu:#4a90e2}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:15px;line-height:1.7;padding:2rem 1rem}
+.page{max-width:800px;margin:0 auto}
+.lh{margin-bottom:2rem}
+.ln{color:var(--acc);font-size:.78rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+h1{font-size:1.85rem;font-weight:800;margin:.2rem 0 .4rem}
+.sub{color:var(--mut);font-size:1rem}
+.badges{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.6rem}
+.badge{font-size:.68rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:.2rem .55rem;border-radius:999px;border:1px solid var(--bdr);color:var(--mut)}
+.badge.p{border-color:var(--acc);color:var(--acc)}
+.nav{display:flex;justify-content:space-between;margin:1.5rem 0;font-size:.84rem;color:var(--mut)}
+.nav a{color:var(--grn);text-decoration:none}
+section{margin-bottom:2rem}
+h2{font-size:1rem;font-weight:700;color:var(--grn);margin-bottom:.6rem;border-bottom:1px solid var(--bdr);padding-bottom:.3rem}
+h3{font-size:.95rem;font-weight:600;margin:1rem 0 .3rem;color:var(--txt)}
+p{margin-bottom:.8rem}
+ul,ol{padding-left:1.4rem;margin-bottom:.8rem}
+li{margin-bottom:.3rem}
+pre{background:var(--cb);border:1px solid var(--bdr);border-radius:8px;padding:1rem 1.2rem;overflow-x:auto;font-size:.82rem;line-height:1.55;margin-bottom:.9rem;font-family:"JetBrains Mono","Fira Code","Cascadia Code",monospace;white-space:pre}
+p code,li code{background:var(--cb);border:1px solid var(--bdr);border-radius:3px;padding:.1em .35em;font-size:.82em;font-family:"JetBrains Mono","Fira Code",monospace}
+.box{border-left:3px solid var(--grn);background:var(--sur);border-radius:0 8px 8px 0;padding:.8rem 1.1rem;margin-bottom:.9rem}
+.box.w{border-left-color:var(--amb)}
+.box.i{border-left-color:var(--acc)}
+.box strong{display:block;margin-bottom:.25rem;font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;color:var(--mut)}
+/* setup / teardown banners */
+.setup-banner,.teardown-banner{border-radius:8px;padding:1rem 1.2rem;margin-bottom:1rem}
+.setup-banner{background:#0a1f14;border:1px solid #1a5c38}
+.setup-banner h2{color:#00d488;border-color:#1a5c38}
+.teardown-banner{background:#1a0e0a;border:1px solid #5c2a1a}
+.teardown-banner h2{color:#e87040;border-color:#5c2a1a}
+.copy-btn{float:right;background:transparent;border:1px solid var(--bdr);color:var(--mut);font-size:.72rem;padding:.2rem .55rem;border-radius:4px;cursor:pointer;font-family:monospace;margin-bottom:.3rem}
+.copy-btn:hover{border-color:var(--grn);color:var(--grn)}
+/* quiz */
+.quiz{background:var(--sur);border:1px solid var(--bdr);border-radius:10px;padding:1.2rem;margin-bottom:1.2rem}
+.quiz h3{margin-top:0;font-size:.93rem}
+.opts{list-style:none;padding:0;margin:.8rem 0}
+.opts li{padding:.5rem .9rem;border:1px solid var(--bdr);border-radius:7px;margin-bottom:.4rem;cursor:pointer;font-size:.87rem;transition:border-color .15s,background .15s}
+.opts li:hover{border-color:var(--grn);background:rgba(0,169,114,.05)}
+.opts li.ok{border-color:var(--grn);background:rgba(0,169,114,.12)}
+.opts li.no{border-color:var(--acc);background:rgba(255,54,33,.1)}
+.fb{display:none;font-size:.84rem;margin-top:.6rem;padding:.6rem .9rem;border-radius:7px}
+.fb.show{display:block}
+.fb.ok{background:rgba(0,169,114,.1);color:var(--grn)}
+.fb.no{background:rgba(255,54,33,.1);color:#ff7a6b}
+.pbw{background:var(--sur);border:1px solid var(--bdr);border-radius:999px;height:7px;overflow:hidden;margin-bottom:.3rem}
+.pb{height:100%;background:var(--grn);transition:width .4s;border-radius:999px;width:0%}
+.pl{font-size:.72rem;color:var(--mut);text-align:right}
+.done-box{text-align:center;padding:1.8rem;border:1px solid var(--bdr);border-radius:10px;background:var(--sur);margin-top:1.5rem}
+.done-box h2{border:none;color:var(--grn);font-size:1.3rem}
+.cmd{display:inline-block;background:var(--cb);border:1px solid var(--grn);border-radius:7px;padding:.5rem 1rem;font-family:monospace;font-size:.87rem;color:var(--grn);margin:.8rem 0}
+.nxt-btn{display:inline-block;margin-top:.4rem;padding:.6rem 1.4rem;background:var(--acc);color:white;font-weight:700;font-size:.87rem;border-radius:7px;text-decoration:none}
+footer{margin-top:2.5rem;padding-top:.9rem;border-top:1px solid var(--bdr);color:var(--mut);font-size:.78rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:.4rem}
+footer a{color:var(--mut)}
+</style>
+</head>
+<body><div class="page">
+
+<div class="lh">
+  <div class="ln">Lesson 02 of 19</div>
+  <h1>Partitions &amp; Parallelism</h1>
+  <p class="sub">The unit of work — partition count determines how fast your job runs</p>
+  <div class="badges"><span class="badge p">Computational Thinking</span></div>
+</div>
+
+<div class="pbw"><div class="pb" id="pb"></div></div>
+<p class="pl" id="pl">0 / 3 checks</p>
+
+<div class="nav"><a href="01-lazy-eval-and-actions.html">← 01: Lazy Eval</a><a href="03-narrow-vs-wide-and-the-shuffle.html">03: Narrow vs Wide →</a></div>
+
+<!-- ── SETUP ────────────────────────────────────────────────────── -->
+<section class="setup-banner">
+<h2>🛠 Setup — run this cell first</h2>
+<p>Paste into a Databricks notebook cell and run before working through the examples below.</p>
+<button class="copy-btn" onclick="copyCode('setup-code')">copy</button>
+<pre id="setup-code"># Shared setup — creates Delta tables used across lessons 02-11
+# Run once per cluster session; safe to re-run (uses overwrite mode)
+
+from pyspark.sql import functions as F
+from pyspark.sql.types import *
+import random, datetime
+
+spark.sql("CREATE DATABASE IF NOT EXISTS lesson_db")
+
+# ── fact table: 500k order rows ──────────────────────────────────────────────
+orders_schema = StructType([
+    StructField("order_id",    LongType(),   False),
+    StructField("customer_id", IntegerType(),False),
+    StructField("product_id",  IntegerType(),False),
+    StructField("country",     StringType(), False),
+    StructField("amount",      DoubleType(), False),
+    StructField("year",        IntegerType(),False),
+    StructField("order_date",  DateType(),   False),
+])
+rows = []
+countries = ["US","US","US","US","GB","DE","FR","BR","IN","JP"]
+for i in range(500_000):
+    cid = random.randint(1, 200)    # 200 customers, skewed toward low ids
+    if cid <= 5: cid = 1            # customer 1 = hot key (skew demo)
+    rows.append((
+        i, cid, random.randint(1,100),
+        countries[random.randint(0,9)],
+        round(random.uniform(5.0, 2000.0), 2),
+        random.choice([2023,2024,2025]),
+        datetime.date(random.choice([2023,2024,2025]),
+                      random.randint(1,12), random.randint(1,28))
+    ))
+orders_df = spark.createDataFrame(rows, orders_schema)
+(orders_df.write.mode("overwrite").format("delta")
+    .partitionBy("year")
+    .saveAsTable("lesson_db.orders"))
+
+# ── dimension table: 100 products (small — broadcast candidate) ──────────────
+products_df = spark.createDataFrame(
+    [(i, f"Product {i}", ["Electronics","Clothing","Food","Sports"][i%4],
+      round(10 + i * 2.5, 2))
+     for i in range(1, 101)],
+    ["product_id","name","category","list_price"]
+)
+(products_df.write.mode("overwrite").format("delta")
+    .saveAsTable("lesson_db.products"))
+
+# ── customers dimension (200 rows, skewed: customer 1 has most orders) ────────
+customers_df = spark.createDataFrame(
+    [(i, f"Customer {i}", ["US","GB","DE","FR","BR"][i%5])
+     for i in range(1, 201)],
+    ["customer_id","name","region"]
+)
+(customers_df.write.mode("overwrite").format("delta")
+    .saveAsTable("lesson_db.customers"))
+
+print("Setup complete. Tables: lesson_db.orders, lesson_db.products, lesson_db.customers")
+spark.sql("SELECT year, COUNT(*) as cnt FROM lesson_db.orders GROUP BY year ORDER BY year").show()
+</pre>
+</section>
+
+<!-- ── LESSON BODY ──────────────────────────────────────────────── -->
+
+<section>
+<h2>The model: 1 partition = 1 task = 1 core</h2>
+<p>A DataFrame is split into <strong>partitions</strong>. Each partition is processed by one <strong>task</strong> on one <strong>core</strong>. Parallelism ≈ number of partitions running simultaneously on your cluster.</p>
+<pre># Check partition distribution (serverless-safe — no RDD API)
+from pyspark.sql import functions as F
+
+orders = spark.table("lesson_db.orders")
+(orders
+  .groupBy(F.spark_partition_id().alias("partition_id"))
+  .count()
+  .orderBy("partition_id")
+  .show())</pre>
+<div class="box w"><strong>Serverless gotcha</strong><code>df.rdd.getNumPartitions()</code> fails on Databricks serverless. Always use <code>spark_partition_id()</code> groupBy instead.</div>
+</section>
+
+<section>
+<h2>Too few vs too many</h2>
+<pre># After a groupBy, shuffle creates spark.sql.shuffle.partitions partitions (default 200)
+result = orders.groupBy("country").agg(F.sum("amount").alias("total"))
+print("Default shuffle partitions:", spark.conf.get("spark.sql.shuffle.partitions"))
+result.groupBy(F.spark_partition_id()).count().orderBy("spark_partition_id()").show(10)
+
+# Right-size for small/medium datasets
+spark.conf.set("spark.sql.shuffle.partitions", "20")
+result2 = orders.groupBy("country").agg(F.sum("amount").alias("total"))
+result2.groupBy(F.spark_partition_id()).count().show()</pre>
+<p>Compare the output. With default 200 most partitions will be tiny (or empty) for our 500k-row table. With 20 they're better balanced.</p>
+</section>
+
+<section>
+<h2>coalesce vs repartition</h2>
+<pre># coalesce — reduce WITHOUT a shuffle (cheap, narrow)
+# Use before writes to avoid many tiny output files
+orders.coalesce(4).write.mode("overwrite").format("delta").saveAsTable("lesson_db.orders_compact")
+spark.sql("DESCRIBE DETAIL lesson_db.orders_compact").select("numFiles").show()
+
+# repartition — full shuffle (can increase OR decrease)
+# Use when you need to co-locate by key for a subsequent join
+orders_by_customer = orders.repartition(50, "customer_id")
+(orders_by_customer
+  .groupBy(F.spark_partition_id())
+  .count()
+  .orderBy(F.desc("count"))
+  .show(5))</pre>
+<div class="box"><strong>Interview one-liner</strong>"coalesce is cheap — no shuffle, just merges partitions. repartition does a full shuffle and can grow or shrink. I use coalesce before writes to avoid small-files problems."</div>
+</section>
+
+
+<!-- ── QUIZZES ──────────────────────────────────────────────────── -->
+<section>
+<h2>Knowledge checks</h2>
+
+<div class="quiz" id="q1">
+  <h3>Your 500k-row orders table has spark.sql.shuffle.partitions=200. After a groupBy, you have 200 tiny partitions. What's the fastest safe fix on serverless?</h3>
+  <ul class="opts">
+        <li onclick="ans(this,'q1',true)">Set spark.sql.shuffle.partitions to a lower number that matches the data size.</li>
+        <li onclick="ans(this,'q1',false)">Call df.repartition(200) to redistribute.</li>
+        <li onclick="ans(this,'q1',false)">Use df.cache() to avoid the re-shuffle.</li>
+        <li onclick="ans(this,'q1',false)">Add more executors to the serverless cluster.</li>
+  </ul>
+  <div class="fb" id="q1-fb"></div>
+</div>
+<div class="quiz" id="q2">
+  <h3>You're writing a DataFrame with 400 partitions to a Delta table. You want fewer, larger output files without paying for a shuffle. Which call?</h3>
+  <ul class="opts">
+        <li onclick="ans(this,'q2',false)">df.repartition(8).write...</li>
+        <li onclick="ans(this,'q2',true)">df.coalesce(8).write...</li>
+        <li onclick="ans(this,'q2',false)">spark.conf.set('spark.sql.shuffle.partitions', 8) before write</li>
+        <li onclick="ans(this,'q2',false)">OPTIMIZE the table after writing.</li>
+  </ul>
+  <div class="fb" id="q2-fb"></div>
+</div>
+<div class="quiz" id="q3">
+  <h3>In the lesson_db.orders table, customer_id=1 has far more rows than other customers. You're about to join orders to customers on customer_id. What partition problem might this cause?</h3>
+  <ul class="opts">
+        <li onclick="ans(this,'q3',false)">No problem — the join distributes evenly by definition.</li>
+        <li onclick="ans(this,'q3',true)">Data skew — the partition holding customer_id=1 will be much larger than others, causing one task to run far longer than the rest.</li>
+        <li onclick="ans(this,'q3',false)">The join will fail due to a null key error.</li>
+        <li onclick="ans(this,'q3',false)">Too many partitions will be created for customer_id=1.</li>
+  </ul>
+  <div class="fb" id="q3-fb"></div>
+</div>
+</section>
+
+<!-- ── NARRATE IT BACK ─────────────────────────────────────────── -->
+<section>
+<h2>Narrate it back</h2>
+<div class="box i">
+  <strong>Interviewer prompt — say this out loud in under 45 seconds</strong>
+  "Your job creates 200 partitions but the dataset is only 50 MB. What's happening and how do you fix it?"
+</div>
+<p><em>Cover: default spark.sql.shuffle.partitions=200 creates 200 post-shuffle partitions regardless of data size → most are near-empty → scheduling overhead for 200 tasks dominates actual compute → fix: lower shuffle.partitions to match data (e.g. 8-20 for small data) → AQE also auto-coalesces these down if adaptive.enabled is true (it is by default)</em></p>
+</section>
+
+<!-- ── TEARDOWN ─────────────────────────────────────────────────── -->
+<section class="teardown-banner">
+<h2>🧹 Teardown — clean up after the lesson</h2>
+<button class="copy-btn" onclick="copyCode('teardown-code')">copy</button>
+<pre id="teardown-code"># Teardown — drop lesson tables when you're done
+spark.sql("DROP TABLE IF EXISTS lesson_db.orders")
+spark.sql("DROP TABLE IF EXISTS lesson_db.products")
+spark.sql("DROP TABLE IF EXISTS lesson_db.customers")
+spark.sql("DROP DATABASE IF EXISTS lesson_db")
+print("Teardown complete.")
+
+spark.sql('DROP TABLE IF EXISTS lesson_db.orders_compact')</pre>
+</section>
+
+<!-- ── DONE ────────────────────────────────────────────────────── -->
+<div class="done-box" id="done-box">
+  <h2 id="done-title">Lesson 02 — when you're ready</h2>
+  <p>Pass all three knowledge checks above to unlock the next lesson, or run this now to mark it complete:</p>
+  <div class="cmd">mise run teach:done 02</div>
+  <p style="color:var(--mut);font-size:.82rem;margin-top:.4rem">
+    <code>git add teach/ &amp;&amp; git commit -m "lesson 02 done" &amp;&amp; git push</code>
+  </p>
+  <br><a href="03-narrow-vs-wide-and-the-shuffle.html" class="nxt-btn" id="nxt-btn" style="opacity:.45;pointer-events:none">03: Narrow vs Wide →</a>
+</div>
+
+<div class="nav" style="margin-top:1.5rem"><a href="01-lazy-eval-and-actions.html">← 01: Lazy Eval</a><a href="03-narrow-vs-wide-and-the-shuffle.html">03: Narrow vs Wide →</a></div>
+<footer>
+  <span>Source: <a href="../../03-Spark-Mental-Models.md">03-Spark-Mental-Models.md</a></span>
+  <span>
+    <a href="../reference/interview-cheatsheet.html">Cheat Sheet</a> ·
+    <a href="https://spark.apache.org/docs/3.5.0/api/python/" target="_blank">PySpark 3.5 API</a>
+  </span>
+</footer>
+
+</div>
+<script>
+const FB={
+  q1:{ok:"Correct. Lowering shuffle.partitions means the groupBy shuffle creates fewer, larger partitions. AQE also coalesces automatically, but explicit sizing is reliable. repartition would add another shuffle, and cache() is restricted on serverless.",no:"AQE helps but setting shuffle.partitions explicitly is the direct fix. repartition adds a shuffle; cache() is serverless-restricted."},
+  q2:{ok:"Correct. coalesce(8) is a narrow (no-shuffle) operation — it merges existing partitions. repartition would do a full shuffle. OPTIMIZE compacts after the fact but you'd still write 400 files first. shuffle.partitions doesn't affect non-shuffle writes.",no:"coalesce = no shuffle, just merges existing partitions. repartition = full shuffle. For pre-write compaction, coalesce is the right call."},
+  q3:{ok:"Correct. We intentionally made customer_id=1 a hot key. In a shuffle join, all rows with the same key end up on the same partition. One giant task = the whole stage waits. This is data skew — covered in Lesson 10.",no:"A hot key means one partition gets far more data than others — data skew. One slow task holds up the whole stage."}
+};
+
+const TOTAL=3; let done=0; const answered={};
+function ans(el,qid,ok){
+  if(answered[qid])return; answered[qid]=true;
+  el.classList.add(ok?'ok':'no');
+  const fb=document.getElementById(qid+'-fb');
+  fb.innerHTML=(ok?'✓ ':'✗ ')+FB[qid][ok?'ok':'no'];
+  fb.className='fb show '+(ok?'ok':'no');
+  if(ok){done++; document.getElementById('pb').style.width=Math.round(done/TOTAL*100)+'%'; document.getElementById('pl').textContent=done+' / '+TOTAL+' checks';}
+  if(done===TOTAL){document.getElementById('done-title').textContent='Lesson complete ✓ — mark it done:';const b=document.getElementById('nxt-btn');if(b){b.style.opacity='1';b.style.pointerEvents='auto';}}
+}
+function copyCode(id){const el=document.getElementById(id);if(el){navigator.clipboard.writeText(el.textContent).then(()=>{}).catch(()=>{});}}
+
+</script>
+</body></html>

@@ -1,0 +1,155 @@
+# mise.toml — pinned dev environment for the study repo
+# Docs: https://mise.jdx.dev
+#
+# What this does when you `cd` into the repo (with `mise activate` in your shell):
+#   1. Installs + pins the right Python, Java, uv, and Databricks CLI versions
+#   2. Auto-creates and activates `.venv` (uv-managed)
+#   3. Loads `.env` (copy `.env.example` → `.env` first)
+#   4. Exports PySpark-friendly env vars
+#   5. Gives you `mise run <task>` shortcuts
+
+[tools]
+python    = "3.12"               # PySpark 3.5.1+ runs fine on 3.12; matches recent Databricks Runtime
+java      = "temurin-17"          # required by PySpark 3.5
+uv        = "latest"
+databricks-cli = "latest"
+node = "lts"
+pnpm = "latest"
+
+[env]
+# Auto-create + activate the uv-managed venv when you cd into the project
+_.python.venv = { path = ".venv", create = true }
+
+# Auto-load .env (gitignored). Copy .env.example -> .env to start.
+_.file = ".env"
+
+# Keep PySpark driver + workers on the same interpreter (the venv's python)
+PYSPARK_PYTHON = "{{ config_root }}/.venv/bin/python"
+PYSPARK_DRIVER_PYTHON = "{{ config_root }}/.venv/bin/python"
+
+# Avoids "Could not bind to local IP" on some WSL / macOS setups
+SPARK_LOCAL_IP = "127.0.0.1"
+
+# Quieter PySpark logs at the JVM level (override in a notebook if you want more)
+PYSPARK_SUBMIT_ARGS = "--conf spark.ui.showConsoleProgress=false pyspark-shell"
+
+# ───────────────────────────────────────────────────────────────
+# Tasks — run with: `mise run <name>` or `mise <name>`
+# List them with: `mise tasks`
+# ───────────────────────────────────────────────────────────────
+
+[tasks.setup]
+description = "Install Python deps with uv (run once after clone)"
+run = "uv sync"
+
+[tasks.init-env]
+description = "Interactively create/update the .env file with your Databricks workspace settings"
+run = "./scripts/init-env.sh"
+
+[tasks.smoke]
+description = "Local PySpark smoke test — should print Spark 3.5.3 and 5 rows"
+run = """
+uv run python -c "
+from pyspark.sql import SparkSession
+s = SparkSession.builder.appName('smoke').getOrCreate()
+s.sparkContext.setLogLevel('ERROR')
+print('Spark', s.version)
+s.range(5).show()
+s.stop()
+"
+"""
+
+[tasks.lab]
+description = "Launch Jupyter Lab in notebooks/local/"
+run = "uv run jupyter lab notebooks/local"
+
+[tasks.to-ipynb]
+description = "Convert all percent-format local notebooks to .ipynb"
+run = "uv run jupytext --to notebook notebooks/local/*.py"
+
+[tasks.clean]
+description = "Remove local Spark scratch dirs (spark-warehouse, metastore_db, derby.log, checkpoints)"
+run = "rm -rf spark-warehouse metastore_db derby.log .ipynb_checkpoints notebooks/local/.ipynb_checkpoints"
+
+# ───────────────── Q&A web app ─────────────────
+
+[tasks.webapp]
+description = "Install deps (pnpm) and run the local Copilot-powered Q&A web app at http://localhost:4173"
+dir = "{{ config_root }}/webapp"
+run = """
+pnpm install
+pnpm start
+"""
+
+# ───────────────── Databricks CLI shortcuts ─────────────────
+
+[tasks."db:version"]
+description = "Show the installed Databricks CLI version"
+run = "databricks --version"
+
+[tasks."db:login"]
+description = "Authenticate to Databricks Free Edition (uses $DATABRICKS_HOST from .env)"
+run = "databricks auth login --host $DATABRICKS_HOST --profile ${DATABRICKS_PROFILE:-DEFAULT}"
+
+[tasks."db:profiles"]
+description = "List configured Databricks auth profiles"
+run = "databricks auth profiles"
+
+[tasks."db:whoami"]
+description = "Show the user the CLI is currently authenticated as"
+run = "databricks current-user me --profile ${DATABRICKS_PROFILE:-DEFAULT}"
+
+[tasks."db:import"]
+description = "Push notebooks/databricks/ into your Free Edition workspace at $DATABRICKS_NOTEBOOK_DEST"
+run = """
+databricks workspace import-dir \
+  notebooks/databricks \
+  $DATABRICKS_NOTEBOOK_DEST \
+  --overwrite \
+  --profile ${DATABRICKS_PROFILE:-DEFAULT}
+"""
+
+[tasks."db:export"]
+description = "Pull edits back from $DATABRICKS_NOTEBOOK_DEST into notebooks/databricks/ (review before commit!)"
+run = """
+databricks workspace export-dir \
+  $DATABRICKS_NOTEBOOK_DEST \
+  notebooks/databricks \
+  --overwrite \
+  --profile ${DATABRICKS_PROFILE:-DEFAULT}
+"""
+
+# ───────────────────────────────────────────────────────────────
+# Teaching workflow — run with: mise run teach:<name>
+# Session resume: git pull → mise run teach:status → mise run teach:next
+# ───────────────────────────────────────────────────────────────
+
+[tasks."teach:status"]
+description = "Show lesson progress (not started / started / complete)"
+run = "uv run python scripts/teach.py status"
+
+[tasks."teach:next"]
+description = "Open the next not-started (or started) lesson in your browser"
+run = "uv run python scripts/teach.py next"
+
+[tasks."teach:lesson"]
+description = "Open a specific lesson by number, e.g.: mise run teach:lesson 01"
+run = "uv run python scripts/teach.py lesson"
+
+[tasks."teach:done"]
+description = "Mark a lesson complete (creates a learning record), e.g.: mise run teach:done 01"
+run = "uv run python scripts/teach.py done"
+
+[tasks."teach:restart"]
+description = "Remove a lesson's learning record to replay it, e.g.: mise run teach:restart 01"
+run = "uv run python scripts/teach.py restart"
+
+[tasks.upload-nbs]
+description = "import the notebooks in notebooks/databricks/ into the Databricks workspace (overwrites, for quick iteration)"
+run = '''
+user=$(databricks current-user me -p free| jq -r .userName)
+databricks workspace import-dir \
+  ./notebooks/databricks \
+  /Workspace/Users/${user}/notebooks \
+  --overwrite --profile free
+'''

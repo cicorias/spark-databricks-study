@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Lesson 09 — UDF Avoidance</title>
+<style>
+:root{--bg:#0f1117;--sur:#1a1d27;--bdr:#2e3147;--acc:#ff3621;--grn:#00a972;--txt:#e8eaf0;--mut:#8b8fa8;--cb:#12151e;--amb:#e8a020;--blu:#4a90e2}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:15px;line-height:1.7;padding:2rem 1rem}
+.page{max-width:800px;margin:0 auto}
+.lh{margin-bottom:2rem}
+.ln{color:var(--acc);font-size:.78rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+h1{font-size:1.85rem;font-weight:800;margin:.2rem 0 .4rem}
+.sub{color:var(--mut);font-size:1rem}
+.badges{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.6rem}
+.badge{font-size:.68rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:.2rem .55rem;border-radius:999px;border:1px solid var(--bdr);color:var(--mut)}
+.badge.p{border-color:var(--acc);color:var(--acc)}
+.nav{display:flex;justify-content:space-between;margin:1.5rem 0;font-size:.84rem;color:var(--mut)}
+.nav a{color:var(--grn);text-decoration:none}
+section{margin-bottom:2rem}
+h2{font-size:1rem;font-weight:700;color:var(--grn);margin-bottom:.6rem;border-bottom:1px solid var(--bdr);padding-bottom:.3rem}
+h3{font-size:.95rem;font-weight:600;margin:1rem 0 .3rem;color:var(--txt)}
+p{margin-bottom:.8rem}
+ul,ol{padding-left:1.4rem;margin-bottom:.8rem}
+li{margin-bottom:.3rem}
+pre{background:var(--cb);border:1px solid var(--bdr);border-radius:8px;padding:1rem 1.2rem;overflow-x:auto;font-size:.82rem;line-height:1.55;margin-bottom:.9rem;font-family:"JetBrains Mono","Fira Code","Cascadia Code",monospace;white-space:pre}
+p code,li code{background:var(--cb);border:1px solid var(--bdr);border-radius:3px;padding:.1em .35em;font-size:.82em;font-family:"JetBrains Mono","Fira Code",monospace}
+.box{border-left:3px solid var(--grn);background:var(--sur);border-radius:0 8px 8px 0;padding:.8rem 1.1rem;margin-bottom:.9rem}
+.box.w{border-left-color:var(--amb)}
+.box.i{border-left-color:var(--acc)}
+.box strong{display:block;margin-bottom:.25rem;font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;color:var(--mut)}
+/* setup / teardown banners */
+.setup-banner,.teardown-banner{border-radius:8px;padding:1rem 1.2rem;margin-bottom:1rem}
+.setup-banner{background:#0a1f14;border:1px solid #1a5c38}
+.setup-banner h2{color:#00d488;border-color:#1a5c38}
+.teardown-banner{background:#1a0e0a;border:1px solid #5c2a1a}
+.teardown-banner h2{color:#e87040;border-color:#5c2a1a}
+.copy-btn{float:right;background:transparent;border:1px solid var(--bdr);color:var(--mut);font-size:.72rem;padding:.2rem .55rem;border-radius:4px;cursor:pointer;font-family:monospace;margin-bottom:.3rem}
+.copy-btn:hover{border-color:var(--grn);color:var(--grn)}
+/* quiz */
+.quiz{background:var(--sur);border:1px solid var(--bdr);border-radius:10px;padding:1.2rem;margin-bottom:1.2rem}
+.quiz h3{margin-top:0;font-size:.93rem}
+.opts{list-style:none;padding:0;margin:.8rem 0}
+.opts li{padding:.5rem .9rem;border:1px solid var(--bdr);border-radius:7px;margin-bottom:.4rem;cursor:pointer;font-size:.87rem;transition:border-color .15s,background .15s}
+.opts li:hover{border-color:var(--grn);background:rgba(0,169,114,.05)}
+.opts li.ok{border-color:var(--grn);background:rgba(0,169,114,.12)}
+.opts li.no{border-color:var(--acc);background:rgba(255,54,33,.1)}
+.fb{display:none;font-size:.84rem;margin-top:.6rem;padding:.6rem .9rem;border-radius:7px}
+.fb.show{display:block}
+.fb.ok{background:rgba(0,169,114,.1);color:var(--grn)}
+.fb.no{background:rgba(255,54,33,.1);color:#ff7a6b}
+.pbw{background:var(--sur);border:1px solid var(--bdr);border-radius:999px;height:7px;overflow:hidden;margin-bottom:.3rem}
+.pb{height:100%;background:var(--grn);transition:width .4s;border-radius:999px;width:0%}
+.pl{font-size:.72rem;color:var(--mut);text-align:right}
+.done-box{text-align:center;padding:1.8rem;border:1px solid var(--bdr);border-radius:10px;background:var(--sur);margin-top:1.5rem}
+.done-box h2{border:none;color:var(--grn);font-size:1.3rem}
+.cmd{display:inline-block;background:var(--cb);border:1px solid var(--grn);border-radius:7px;padding:.5rem 1rem;font-family:monospace;font-size:.87rem;color:var(--grn);margin:.8rem 0}
+.nxt-btn{display:inline-block;margin-top:.4rem;padding:.6rem 1.4rem;background:var(--acc);color:white;font-weight:700;font-size:.87rem;border-radius:7px;text-decoration:none}
+footer{margin-top:2.5rem;padding-top:.9rem;border-top:1px solid var(--bdr);color:var(--mut);font-size:.78rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:.4rem}
+footer a{color:var(--mut)}
+</style>
+</head>
+<body><div class="page">
+
+<div class="lh">
+  <div class="ln">Lesson 09 of 19</div>
+  <h1>UDF Avoidance</h1>
+  <p class="sub">Lever 4: stay in the fast path — built-ins, pandas UDFs, and Photon</p>
+  <div class="badges"><span class="badge p">Code Stewardship</span></div>
+</div>
+
+<div class="pbw"><div class="pb" id="pb"></div></div>
+<p class="pl" id="pl">0 / 3 checks</p>
+
+<div class="nav"><a href="08-caching-and-materialization.html">← 08: Caching</a><a href="10-skew-handling.html">10: Skew Handling →</a></div>
+
+<!-- ── SETUP ────────────────────────────────────────────────────── -->
+<section class="setup-banner">
+<h2>🛠 Setup — run this cell first</h2>
+<p>Paste into a Databricks notebook cell and run before working through the examples below.</p>
+<button class="copy-btn" onclick="copyCode('setup-code')">copy</button>
+<pre id="setup-code"># Shared setup — creates Delta tables used across lessons 02-11
+# Run once per cluster session; safe to re-run (uses overwrite mode)
+
+from pyspark.sql import functions as F
+from pyspark.sql.types import *
+import random, datetime
+
+spark.sql("CREATE DATABASE IF NOT EXISTS lesson_db")
+
+# ── fact table: 500k order rows ──────────────────────────────────────────────
+orders_schema = StructType([
+    StructField("order_id",    LongType(),   False),
+    StructField("customer_id", IntegerType(),False),
+    StructField("product_id",  IntegerType(),False),
+    StructField("country",     StringType(), False),
+    StructField("amount",      DoubleType(), False),
+    StructField("year",        IntegerType(),False),
+    StructField("order_date",  DateType(),   False),
+])
+rows = []
+countries = ["US","US","US","US","GB","DE","FR","BR","IN","JP"]
+for i in range(500_000):
+    cid = random.randint(1, 200)    # 200 customers, skewed toward low ids
+    if cid <= 5: cid = 1            # customer 1 = hot key (skew demo)
+    rows.append((
+        i, cid, random.randint(1,100),
+        countries[random.randint(0,9)],
+        round(random.uniform(5.0, 2000.0), 2),
+        random.choice([2023,2024,2025]),
+        datetime.date(random.choice([2023,2024,2025]),
+                      random.randint(1,12), random.randint(1,28))
+    ))
+orders_df = spark.createDataFrame(rows, orders_schema)
+(orders_df.write.mode("overwrite").format("delta")
+    .partitionBy("year")
+    .saveAsTable("lesson_db.orders"))
+
+# ── dimension table: 100 products (small — broadcast candidate) ──────────────
+products_df = spark.createDataFrame(
+    [(i, f"Product {i}", ["Electronics","Clothing","Food","Sports"][i%4],
+      round(10 + i * 2.5, 2))
+     for i in range(1, 101)],
+    ["product_id","name","category","list_price"]
+)
+(products_df.write.mode("overwrite").format("delta")
+    .saveAsTable("lesson_db.products"))
+
+# ── customers dimension (200 rows, skewed: customer 1 has most orders) ────────
+customers_df = spark.createDataFrame(
+    [(i, f"Customer {i}", ["US","GB","DE","FR","BR"][i%5])
+     for i in range(1, 201)],
+    ["customer_id","name","region"]
+)
+(customers_df.write.mode("overwrite").format("delta")
+    .saveAsTable("lesson_db.customers"))
+
+print("Setup complete. Tables: lesson_db.orders, lesson_db.products, lesson_db.customers")
+spark.sql("SELECT year, COUNT(*) as cnt FROM lesson_db.orders GROUP BY year ORDER BY year").show()
+</pre>
+</section>
+
+<!-- ── LESSON BODY ──────────────────────────────────────────────── -->
+
+<section>
+<h2>Why Python UDFs are slow</h2>
+<p>A Python UDF is a black box to Catalyst. For every row:</p>
+<ol>
+<li>Serialize the row from JVM binary format to Python</li>
+<li>Execute your Python function</li>
+<li>Serialize the result back to the JVM</li>
+</ol>
+<p>This row-by-row serialization breaks Tungsten (JVM codegen), Photon (native C++), and all Catalyst optimizations. A UDF doing the same thing as a built-in is routinely 10–100× slower.</p>
+</section>
+
+<section>
+<h2>Side-by-side: UDF vs built-in</h2>
+<pre>from pyspark.sql import functions as F
+from pyspark.sql.functions import udf
+from pyspark.sql.types import StringType
+import time
+
+orders = spark.table("lesson_db.orders")
+
+# BAD: Python UDF — row-by-row serialization, opaque to Catalyst
+upper_udf = udf(lambda s: s.upper() if s else None, StringType())
+t0 = time.time()
+orders.withColumn("country_up", upper_udf("country")).write.format("noop").mode("overwrite").save()
+print(f"Python UDF: {time.time()-t0:.2f}s")
+
+# GOOD: built-in — vectorized, Photon-friendly, Catalyst-visible
+t0 = time.time()
+orders.withColumn("country_up", F.upper("country")).write.format("noop").mode("overwrite").save()
+print(f"Built-in F.upper: {time.time()-t0:.2f}s")</pre>
+</section>
+
+<section>
+<h2>When you can't avoid custom logic: vectorized UDFs</h2>
+<pre>import pandas as pd
+from pyspark.sql.functions import pandas_udf
+
+# Vectorized (pandas) UDF — works on Arrow batches, not row-by-row
+# Still slower than built-ins but MUCH faster than plain Python UDFs
+@pandas_udf(StringType())
+def custom_clean(s: pd.Series) -> pd.Series:
+    return s.str.strip().str.upper()
+
+orders.withColumn("country_clean", custom_clean("country")).limit(5).show()
+
+# Compare plans
+print("=== Python UDF plan ===")
+orders.withColumn("x", upper_udf("country")).explain()
+print("=== Pandas UDF plan ===")
+orders.withColumn("x", custom_clean("country")).explain()
+print("=== Built-in plan ===")
+orders.withColumn("x", F.upper("country")).explain()</pre>
+<div class="box"><strong>Customer translation</strong>"That custom function forces Spark to hand every row to Python one at a time. Swapping in the built-in lets the engine process whole batches in native code — same result, a fraction of the time."</div>
+</section>
+
+
+<!-- ── QUIZZES ──────────────────────────────────────────────────── -->
+<section>
+<h2>Knowledge checks</h2>
+
+<div class="quiz" id="q1">
+  <h3>A colleague wrote udf(lambda s: s.strip(), StringType()) to trim whitespace. What's the fix?</h3>
+  <ul class="opts">
+        <li onclick="ans(this,'q1',false)">Change StringType() to TrimType().</li>
+        <li onclick="ans(this,'q1',true)">Replace with F.trim('column') — it's the built-in equivalent.</li>
+        <li onclick="ans(this,'q1',false)">Wrap the UDF in a pandas_udf for better performance.</li>
+        <li onclick="ans(this,'q1',false)">Add .cache() before the withColumn call.</li>
+  </ul>
+  <div class="fb" id="q1-fb"></div>
+</div>
+<div class="quiz" id="q2">
+  <h3>You need truly custom logic that doesn't exist as a built-in. You must write a UDF. What's the best choice?</h3>
+  <ul class="opts">
+        <li onclick="ans(this,'q2',false)">A plain Python UDF with udf(lambda...)</li>
+        <li onclick="ans(this,'q2',true)">A pandas_udf (vectorized UDF) — operates on Arrow batches, not row-by-row.</li>
+        <li onclick="ans(this,'q2',false)">Write the logic in SQL using spark.sql()</li>
+        <li onclick="ans(this,'q2',false)">A Scala UDF registered via spark.udf.register()</li>
+  </ul>
+  <div class="fb" id="q2-fb"></div>
+</div>
+<div class="quiz" id="q3">
+  <h3>Why can't Photon (Databricks' native C++ engine) accelerate a Python UDF?</h3>
+  <ul class="opts">
+        <li onclick="ans(this,'q3',false)">Photon doesn't support UDFs at all.</li>
+        <li onclick="ans(this,'q3',true)">Python UDFs force data to leave the JVM/native path and serialize to a Python process. Photon can only execute operators it owns natively — a Python function is opaque to it.</li>
+        <li onclick="ans(this,'q3',false)">Photon only runs on GPU nodes.</li>
+        <li onclick="ans(this,'q3',false)">Photon accelerates UDFs if they're decorated with @photon_udf.</li>
+  </ul>
+  <div class="fb" id="q3-fb"></div>
+</div>
+</section>
+
+<!-- ── NARRATE IT BACK ─────────────────────────────────────────── -->
+<section>
+<h2>Narrate it back</h2>
+<div class="box i">
+  <strong>Interviewer prompt — say this out loud in under 45 seconds</strong>
+  "I see a udf(lambda s: s.upper()) in this pipeline. What's wrong with it and how would you fix it?"
+</div>
+<p><em>Cover: Python UDF = row-by-row serialization between JVM and Python → breaks Catalyst optimization, Tungsten codegen, and Photon → 10-100x slower than equivalent built-in → fix: F.upper('column') → in explain() the built-in is a visible plan node (Catalyst can fuse it); the UDF is an opaque EvalPython node → customer: that function hands every row to Python one at a time; the built-in processes whole batches in native code</em></p>
+</section>
+
+<!-- ── TEARDOWN ─────────────────────────────────────────────────── -->
+<section class="teardown-banner">
+<h2>🧹 Teardown — clean up after the lesson</h2>
+<button class="copy-btn" onclick="copyCode('teardown-code')">copy</button>
+<pre id="teardown-code"># Teardown — drop lesson tables when you're done
+spark.sql("DROP TABLE IF EXISTS lesson_db.orders")
+spark.sql("DROP TABLE IF EXISTS lesson_db.products")
+spark.sql("DROP TABLE IF EXISTS lesson_db.customers")
+spark.sql("DROP DATABASE IF EXISTS lesson_db")
+print("Teardown complete.")
+</pre>
+</section>
+
+<!-- ── DONE ────────────────────────────────────────────────────── -->
+<div class="done-box" id="done-box">
+  <h2 id="done-title">Lesson 09 — when you're ready</h2>
+  <p>Pass all three knowledge checks above to unlock the next lesson, or run this now to mark it complete:</p>
+  <div class="cmd">mise run teach:done 09</div>
+  <p style="color:var(--mut);font-size:.82rem;margin-top:.4rem">
+    <code>git add teach/ &amp;&amp; git commit -m "lesson 09 done" &amp;&amp; git push</code>
+  </p>
+  <br><a href="10-skew-handling.html" class="nxt-btn" id="nxt-btn" style="opacity:.45;pointer-events:none">10: Skew Handling →</a>
+</div>
+
+<div class="nav" style="margin-top:1.5rem"><a href="08-caching-and-materialization.html">← 08: Caching</a><a href="10-skew-handling.html">10: Skew Handling →</a></div>
+<footer>
+  <span>Source: <a href="../../04-Spark-Optimization-Playbook.md">04-Spark-Optimization-Playbook.md</a></span>
+  <span>
+    <a href="../reference/interview-cheatsheet.html">Cheat Sheet</a> ·
+    <a href="https://spark.apache.org/docs/3.5.0/api/python/" target="_blank">PySpark 3.5 API</a>
+  </span>
+</footer>
+
+</div>
+<script>
+const FB={
+  q1:{ok:"Correct. F.trim() is the built-in that does exactly what the UDF does. It stays inside the Catalyst/Tungsten/Photon fast path — no row-by-row Python serialization.",no:"F.trim() is the built-in equivalent. Always check built-ins before writing a UDF."},
+  q2:{ok:"Correct. If custom logic is unavoidable, a vectorized (pandas) UDF is the best Python option. It uses Apache Arrow to transfer column batches between JVM and Python — much faster than row-by-row. Scala UDFs are faster still but require Scala.",no:"When a UDF is unavoidable: pandas_udf > plain Python UDF. pandas_udf works on Arrow batches; Python UDF works row-by-row."},
+  q3:{ok:"Correct. Photon (and Tungsten) execute compiled native code on JVM/C++ objects. A Python UDF breaks that chain — data must serialize out to Python, execute there, and serialize back. Photon can't see inside a Python function.",no:"Photon executes natively. Python UDFs require data to leave the native path → Photon can't optimize them."}
+};
+
+const TOTAL=3; let done=0; const answered={};
+function ans(el,qid,ok){
+  if(answered[qid])return; answered[qid]=true;
+  el.classList.add(ok?'ok':'no');
+  const fb=document.getElementById(qid+'-fb');
+  fb.innerHTML=(ok?'✓ ':'✗ ')+FB[qid][ok?'ok':'no'];
+  fb.className='fb show '+(ok?'ok':'no');
+  if(ok){done++; document.getElementById('pb').style.width=Math.round(done/TOTAL*100)+'%'; document.getElementById('pl').textContent=done+' / '+TOTAL+' checks';}
+  if(done===TOTAL){document.getElementById('done-title').textContent='Lesson complete ✓ — mark it done:';const b=document.getElementById('nxt-btn');if(b){b.style.opacity='1';b.style.pointerEvents='auto';}}
+}
+function copyCode(id){const el=document.getElementById(id);if(el){navigator.clipboard.writeText(el.textContent).then(()=>{}).catch(()=>{});}}
+
+</script>
+</body></html>

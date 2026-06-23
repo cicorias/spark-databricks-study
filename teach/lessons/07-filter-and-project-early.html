@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Lesson 07 — Filter &amp; Project Early</title>
+<style>
+:root{--bg:#0f1117;--sur:#1a1d27;--bdr:#2e3147;--acc:#ff3621;--grn:#00a972;--txt:#e8eaf0;--mut:#8b8fa8;--cb:#12151e;--amb:#e8a020;--blu:#4a90e2}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:15px;line-height:1.7;padding:2rem 1rem}
+.page{max-width:800px;margin:0 auto}
+.lh{margin-bottom:2rem}
+.ln{color:var(--acc);font-size:.78rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+h1{font-size:1.85rem;font-weight:800;margin:.2rem 0 .4rem}
+.sub{color:var(--mut);font-size:1rem}
+.badges{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.6rem}
+.badge{font-size:.68rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:.2rem .55rem;border-radius:999px;border:1px solid var(--bdr);color:var(--mut)}
+.badge.p{border-color:var(--acc);color:var(--acc)}
+.nav{display:flex;justify-content:space-between;margin:1.5rem 0;font-size:.84rem;color:var(--mut)}
+.nav a{color:var(--grn);text-decoration:none}
+section{margin-bottom:2rem}
+h2{font-size:1rem;font-weight:700;color:var(--grn);margin-bottom:.6rem;border-bottom:1px solid var(--bdr);padding-bottom:.3rem}
+h3{font-size:.95rem;font-weight:600;margin:1rem 0 .3rem;color:var(--txt)}
+p{margin-bottom:.8rem}
+ul,ol{padding-left:1.4rem;margin-bottom:.8rem}
+li{margin-bottom:.3rem}
+pre{background:var(--cb);border:1px solid var(--bdr);border-radius:8px;padding:1rem 1.2rem;overflow-x:auto;font-size:.82rem;line-height:1.55;margin-bottom:.9rem;font-family:"JetBrains Mono","Fira Code","Cascadia Code",monospace;white-space:pre}
+p code,li code{background:var(--cb);border:1px solid var(--bdr);border-radius:3px;padding:.1em .35em;font-size:.82em;font-family:"JetBrains Mono","Fira Code",monospace}
+.box{border-left:3px solid var(--grn);background:var(--sur);border-radius:0 8px 8px 0;padding:.8rem 1.1rem;margin-bottom:.9rem}
+.box.w{border-left-color:var(--amb)}
+.box.i{border-left-color:var(--acc)}
+.box strong{display:block;margin-bottom:.25rem;font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;color:var(--mut)}
+/* setup / teardown banners */
+.setup-banner,.teardown-banner{border-radius:8px;padding:1rem 1.2rem;margin-bottom:1rem}
+.setup-banner{background:#0a1f14;border:1px solid #1a5c38}
+.setup-banner h2{color:#00d488;border-color:#1a5c38}
+.teardown-banner{background:#1a0e0a;border:1px solid #5c2a1a}
+.teardown-banner h2{color:#e87040;border-color:#5c2a1a}
+.copy-btn{float:right;background:transparent;border:1px solid var(--bdr);color:var(--mut);font-size:.72rem;padding:.2rem .55rem;border-radius:4px;cursor:pointer;font-family:monospace;margin-bottom:.3rem}
+.copy-btn:hover{border-color:var(--grn);color:var(--grn)}
+/* quiz */
+.quiz{background:var(--sur);border:1px solid var(--bdr);border-radius:10px;padding:1.2rem;margin-bottom:1.2rem}
+.quiz h3{margin-top:0;font-size:.93rem}
+.opts{list-style:none;padding:0;margin:.8rem 0}
+.opts li{padding:.5rem .9rem;border:1px solid var(--bdr);border-radius:7px;margin-bottom:.4rem;cursor:pointer;font-size:.87rem;transition:border-color .15s,background .15s}
+.opts li:hover{border-color:var(--grn);background:rgba(0,169,114,.05)}
+.opts li.ok{border-color:var(--grn);background:rgba(0,169,114,.12)}
+.opts li.no{border-color:var(--acc);background:rgba(255,54,33,.1)}
+.fb{display:none;font-size:.84rem;margin-top:.6rem;padding:.6rem .9rem;border-radius:7px}
+.fb.show{display:block}
+.fb.ok{background:rgba(0,169,114,.1);color:var(--grn)}
+.fb.no{background:rgba(255,54,33,.1);color:#ff7a6b}
+.pbw{background:var(--sur);border:1px solid var(--bdr);border-radius:999px;height:7px;overflow:hidden;margin-bottom:.3rem}
+.pb{height:100%;background:var(--grn);transition:width .4s;border-radius:999px;width:0%}
+.pl{font-size:.72rem;color:var(--mut);text-align:right}
+.done-box{text-align:center;padding:1.8rem;border:1px solid var(--bdr);border-radius:10px;background:var(--sur);margin-top:1.5rem}
+.done-box h2{border:none;color:var(--grn);font-size:1.3rem}
+.cmd{display:inline-block;background:var(--cb);border:1px solid var(--grn);border-radius:7px;padding:.5rem 1rem;font-family:monospace;font-size:.87rem;color:var(--grn);margin:.8rem 0}
+.nxt-btn{display:inline-block;margin-top:.4rem;padding:.6rem 1.4rem;background:var(--acc);color:white;font-weight:700;font-size:.87rem;border-radius:7px;text-decoration:none}
+footer{margin-top:2.5rem;padding-top:.9rem;border-top:1px solid var(--bdr);color:var(--mut);font-size:.78rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:.4rem}
+footer a{color:var(--mut)}
+</style>
+</head>
+<body><div class="page">
+
+<div class="lh">
+  <div class="ln">Lesson 07 of 19</div>
+  <h1>Filter &amp; Project Early</h1>
+  <p class="sub">Lever 2: read only what you need</p>
+  <div class="badges"><span class="badge p">Code Stewardship</span></div>
+</div>
+
+<div class="pbw"><div class="pb" id="pb"></div></div>
+<p class="pl" id="pl">0 / 3 checks</p>
+
+<div class="nav"><a href="06-broadcast-joins.html">← 06: Broadcast Joins</a><a href="08-caching-and-materialization.html">08: Caching →</a></div>
+
+<!-- ── SETUP ────────────────────────────────────────────────────── -->
+<section class="setup-banner">
+<h2>🛠 Setup — run this cell first</h2>
+<p>Paste into a Databricks notebook cell and run before working through the examples below.</p>
+<button class="copy-btn" onclick="copyCode('setup-code')">copy</button>
+<pre id="setup-code"># Shared setup — creates Delta tables used across lessons 02-11
+# Run once per cluster session; safe to re-run (uses overwrite mode)
+
+from pyspark.sql import functions as F
+from pyspark.sql.types import *
+import random, datetime
+
+spark.sql("CREATE DATABASE IF NOT EXISTS lesson_db")
+
+# ── fact table: 500k order rows ──────────────────────────────────────────────
+orders_schema = StructType([
+    StructField("order_id",    LongType(),   False),
+    StructField("customer_id", IntegerType(),False),
+    StructField("product_id",  IntegerType(),False),
+    StructField("country",     StringType(), False),
+    StructField("amount",      DoubleType(), False),
+    StructField("year",        IntegerType(),False),
+    StructField("order_date",  DateType(),   False),
+])
+rows = []
+countries = ["US","US","US","US","GB","DE","FR","BR","IN","JP"]
+for i in range(500_000):
+    cid = random.randint(1, 200)    # 200 customers, skewed toward low ids
+    if cid <= 5: cid = 1            # customer 1 = hot key (skew demo)
+    rows.append((
+        i, cid, random.randint(1,100),
+        countries[random.randint(0,9)],
+        round(random.uniform(5.0, 2000.0), 2),
+        random.choice([2023,2024,2025]),
+        datetime.date(random.choice([2023,2024,2025]),
+                      random.randint(1,12), random.randint(1,28))
+    ))
+orders_df = spark.createDataFrame(rows, orders_schema)
+(orders_df.write.mode("overwrite").format("delta")
+    .partitionBy("year")
+    .saveAsTable("lesson_db.orders"))
+
+# ── dimension table: 100 products (small — broadcast candidate) ──────────────
+products_df = spark.createDataFrame(
+    [(i, f"Product {i}", ["Electronics","Clothing","Food","Sports"][i%4],
+      round(10 + i * 2.5, 2))
+     for i in range(1, 101)],
+    ["product_id","name","category","list_price"]
+)
+(products_df.write.mode("overwrite").format("delta")
+    .saveAsTable("lesson_db.products"))
+
+# ── customers dimension (200 rows, skewed: customer 1 has most orders) ────────
+customers_df = spark.createDataFrame(
+    [(i, f"Customer {i}", ["US","GB","DE","FR","BR"][i%5])
+     for i in range(1, 201)],
+    ["customer_id","name","region"]
+)
+(customers_df.write.mode("overwrite").format("delta")
+    .saveAsTable("lesson_db.customers"))
+
+print("Setup complete. Tables: lesson_db.orders, lesson_db.products, lesson_db.customers")
+spark.sql("SELECT year, COUNT(*) as cnt FROM lesson_db.orders GROUP BY year ORDER BY year").show()
+</pre>
+</section>
+
+<!-- ── LESSON BODY ──────────────────────────────────────────────── -->
+
+<section>
+<h2>The problem: reading everything, filtering last</h2>
+<pre>from pyspark.sql import functions as F
+orders = spark.table("lesson_db.orders")
+
+# BAD: read all years, all columns, then filter at the end
+bad = (orders                           # all years, all 7 columns
+  .join(spark.table("lesson_db.products"), "product_id")
+  .groupBy("country")
+  .agg(F.sum("amount").alias("total"))
+  .where(F.col("year") == 2024))        # filter applied WAY too late
+
+bad.explain("formatted")
+# PushedFilters may still appear (Catalyst pushes it down)
+# But the select("*") still reads all columns from disk</pre>
+</section>
+
+<section>
+<h2>The fix: filter and select before the expensive work</h2>
+<pre># GOOD: push filter and column selection before the join
+orders_2024 = (orders
+  .where(F.col("year") == 2024)                   # partition prune: skip 2023,2025 folders
+  .select("order_id", "product_id", "country", "amount"))  # only 4 of 7 cols
+
+products_slim = (spark.table("lesson_db.products")
+  .select("product_id", "category"))               # only needed columns
+
+good = (orders_2024
+  .join(products_slim, "product_id")
+  .groupBy("country")
+  .agg(F.sum("amount").alias("total")))
+
+good.explain("formatted")
+# Check: PushedFilters: [EqualTo(year,2024)]
+# Check: ReadSchema only shows the 4 selected columns</pre>
+<div class="box"><strong>Customer translation</strong>"We were loading all 3 years and all 7 columns just to use 1 year and 4 columns. Filtering and selecting first means we read a fraction of the data — less I/O, less network, lower cost."</div>
+</section>
+
+<section>
+<h2>Verify pushdown is working</h2>
+<pre># Check what the scan actually reads
+(orders
+  .where(F.col("year") == 2024)
+  .select("order_id","amount")
+  .explain("formatted"))
+# Good: Scan ... PushedFilters: [EqualTo(year,2024)], ReadSchema: struct&lt;order_id,amount&gt;
+# Bad:  Scan ... PushedFilters: [],                   ReadSchema: struct&lt;all columns&gt;
+
+# Check partition pruning worked (Delta partitioned by year)
+spark.sql(
+  "EXPLAIN FORMATTED "
+  "SELECT order_id, amount FROM lesson_db.orders WHERE year = 2024"
+).show(50, truncate=False)</pre>
+</section>
+
+
+<!-- ── QUIZZES ──────────────────────────────────────────────────── -->
+<section>
+<h2>Knowledge checks</h2>
+
+<div class="quiz" id="q1">
+  <h3>explain() shows PushedFilters: [] on a Delta scan. What does this mean?</h3>
+  <ul class="opts">
+        <li onclick="ans(this,'q1',false)">All filters were applied — empty means nothing was filtered out.</li>
+        <li onclick="ans(this,'q1',true)">No filter reached the scan layer — Spark is reading all data and filtering afterward, wasting I/O.</li>
+        <li onclick="ans(this,'q1',false)">PushedFilters only appears for Parquet, not Delta.</li>
+        <li onclick="ans(this,'q1',false)">AQE will push the filter at runtime.</li>
+  </ul>
+  <div class="fb" id="q1-fb"></div>
+</div>
+<div class="quiz" id="q2">
+  <h3>lesson_db.orders is partitioned by year. You write orders.where(col('year')==2024). What physical optimization happens?</h3>
+  <ul class="opts">
+        <li onclick="ans(this,'q2',false)">Row-level filtering — all files are opened but non-2024 rows are skipped.</li>
+        <li onclick="ans(this,'q2',true)">Partition pruning — Spark skips the entire year=2023 and year=2025 folders. Zero bytes read from other years.</li>
+        <li onclick="ans(this,'q2',false)">File-level filtering — each file is sampled to check for 2024 rows.</li>
+        <li onclick="ans(this,'q2',false)">No optimization — partitioning only helps for writes.</li>
+  </ul>
+  <div class="fb" id="q2-fb"></div>
+</div>
+<div class="quiz" id="q3">
+  <h3>You join orders (500k rows, 7 cols) to products (100 rows, 5 cols) but only use product_id and category from products. What should you do?</h3>
+  <ul class="opts">
+        <li onclick="ans(this,'q3',false)">Nothing — Catalyst automatically prunes unused join columns.</li>
+        <li onclick="ans(this,'q3',true)">Select only the needed columns from products before joining: products.select('product_id','category')</li>
+        <li onclick="ans(this,'q3',false)">Use .drop() to remove unused columns after the join.</li>
+        <li onclick="ans(this,'q3',false)">Column pruning only applies to the left side of a join.</li>
+  </ul>
+  <div class="fb" id="q3-fb"></div>
+</div>
+</section>
+
+<!-- ── NARRATE IT BACK ─────────────────────────────────────────── -->
+<section>
+<h2>Narrate it back</h2>
+<div class="box i">
+  <strong>Interviewer prompt — say this out loud in under 45 seconds</strong>
+  "I see the pipeline reads select('*') then applies a WHERE at the end. What are the two things you'd change and why?"
+</div>
+<p><em>Cover: 1) move the WHERE before the join/agg — on a Delta table partitioned by year this becomes partition pruning, skipping entire folders. 2) replace select('*') with .select() for only needed columns — Parquet is columnar so you only pay I/O for the columns you read. Both changes reduce data volume before the expensive join and groupBy, which shrinks shuffle size. Customer: we were loading all years and all columns just to use one year and three columns.</em></p>
+</section>
+
+<!-- ── TEARDOWN ─────────────────────────────────────────────────── -->
+<section class="teardown-banner">
+<h2>🧹 Teardown — clean up after the lesson</h2>
+<button class="copy-btn" onclick="copyCode('teardown-code')">copy</button>
+<pre id="teardown-code"># Teardown — drop lesson tables when you're done
+spark.sql("DROP TABLE IF EXISTS lesson_db.orders")
+spark.sql("DROP TABLE IF EXISTS lesson_db.products")
+spark.sql("DROP TABLE IF EXISTS lesson_db.customers")
+spark.sql("DROP DATABASE IF EXISTS lesson_db")
+print("Teardown complete.")
+</pre>
+</section>
+
+<!-- ── DONE ────────────────────────────────────────────────────── -->
+<div class="done-box" id="done-box">
+  <h2 id="done-title">Lesson 07 — when you're ready</h2>
+  <p>Pass all three knowledge checks above to unlock the next lesson, or run this now to mark it complete:</p>
+  <div class="cmd">mise run teach:done 07</div>
+  <p style="color:var(--mut);font-size:.82rem;margin-top:.4rem">
+    <code>git add teach/ &amp;&amp; git commit -m "lesson 07 done" &amp;&amp; git push</code>
+  </p>
+  <br><a href="08-caching-and-materialization.html" class="nxt-btn" id="nxt-btn" style="opacity:.45;pointer-events:none">08: Caching →</a>
+</div>
+
+<div class="nav" style="margin-top:1.5rem"><a href="06-broadcast-joins.html">← 06: Broadcast Joins</a><a href="08-caching-and-materialization.html">08: Caching →</a></div>
+<footer>
+  <span>Source: <a href="../../04-Spark-Optimization-Playbook.md">04-Spark-Optimization-Playbook.md</a></span>
+  <span>
+    <a href="../reference/interview-cheatsheet.html">Cheat Sheet</a> ·
+    <a href="https://spark.apache.org/docs/3.5.0/api/python/" target="_blank">PySpark 3.5 API</a>
+  </span>
+</footer>
+
+</div>
+<script>
+const FB={
+  q1:{ok:"Correct. PushedFilters shows predicates Catalyst moved to the scan. Empty = nothing was pushed. Spark reads all rows from disk and filters them after the fact — every extra byte costs I/O.",no:"PushedFilters empty = no filter reached the scan. Spark reads everything from disk before filtering."},
+  q2:{ok:"Correct. The table is physically partitioned by year (separate folders). A filter on year causes partition pruning — Spark skips all non-2024 folders entirely. This is often the single biggest I/O win on time-series data.",no:"Partition pruning skips entire folders for non-matching partition values. Partitioned by year + filter on year = zero I/O for other years."},
+  q3:{ok:"Correct. Explicitly .select() before the join reduces the data volume in the shuffle and makes the optimization explicit. While Catalyst does some projection pruning, being explicit is more reliable, especially across join and aggregation boundaries.",no:"Explicitly select only needed columns before joins. Reduces shuffle data volume and makes the plan explicit."}
+};
+
+const TOTAL=3; let done=0; const answered={};
+function ans(el,qid,ok){
+  if(answered[qid])return; answered[qid]=true;
+  el.classList.add(ok?'ok':'no');
+  const fb=document.getElementById(qid+'-fb');
+  fb.innerHTML=(ok?'✓ ':'✗ ')+FB[qid][ok?'ok':'no'];
+  fb.className='fb show '+(ok?'ok':'no');
+  if(ok){done++; document.getElementById('pb').style.width=Math.round(done/TOTAL*100)+'%'; document.getElementById('pl').textContent=done+' / '+TOTAL+' checks';}
+  if(done===TOTAL){document.getElementById('done-title').textContent='Lesson complete ✓ — mark it done:';const b=document.getElementById('nxt-btn');if(b){b.style.opacity='1';b.style.pointerEvents='auto';}}
+}
+function copyCode(id){const el=document.getElementById(id);if(el){navigator.clipboard.writeText(el.textContent).then(()=>{}).catch(()=>{});}}
+
+</script>
+</body></html>

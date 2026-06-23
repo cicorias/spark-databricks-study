@@ -1,0 +1,26 @@
+[project]
+name = "spark-databricks-study"
+version = "0.1.0"
+description = "Hands-on labs for Databricks Forward Deployed Engineer interview prep"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "pyspark==3.5.3",
+    "delta-spark==3.2.1",
+    "jupyter>=1.1.1",
+    "jupytext>=1.16.4",
+    "pandas>=2.2.0",
+    "pyarrow>=17.0.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.0",
+    "ruff>=0.6.0",
+]
+
+[tool.jupytext]
+formats = "py:percent,ipynb"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

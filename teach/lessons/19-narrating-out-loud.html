@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Lesson 19 — Narrating Out Loud</title>
+<style>
+:root{--bg:#0f1117;--sur:#1a1d27;--bdr:#2e3147;--acc:#ff3621;--grn:#00a972;--txt:#e8eaf0;--mut:#8b8fa8;--cb:#12151e;--amb:#e8a020;--blu:#4a90e2}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:15px;line-height:1.7;padding:2rem 1rem}
+.page{max-width:800px;margin:0 auto}
+.lh{margin-bottom:2rem}
+.ln{color:var(--acc);font-size:.78rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+h1{font-size:1.85rem;font-weight:800;margin:.2rem 0 .4rem}
+.sub{color:var(--mut);font-size:1rem}
+.badges{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.6rem}
+.badge{font-size:.68rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:.2rem .55rem;border-radius:999px;border:1px solid var(--bdr);color:var(--mut)}
+.badge.p{border-color:var(--acc);color:var(--acc)}
+.nav{display:flex;justify-content:space-between;margin:1.5rem 0;font-size:.84rem;color:var(--mut)}
+.nav a{color:var(--grn);text-decoration:none}
+section{margin-bottom:2rem}
+h2{font-size:1rem;font-weight:700;color:var(--grn);margin-bottom:.6rem;border-bottom:1px solid var(--bdr);padding-bottom:.3rem}
+h3{font-size:.95rem;font-weight:600;margin:1rem 0 .3rem;color:var(--txt)}
+p{margin-bottom:.8rem}
+ul,ol{padding-left:1.4rem;margin-bottom:.8rem}
+li{margin-bottom:.3rem}
+pre{background:var(--cb);border:1px solid var(--bdr);border-radius:8px;padding:1rem 1.2rem;overflow-x:auto;font-size:.82rem;line-height:1.55;margin-bottom:.9rem;font-family:"JetBrains Mono","Fira Code","Cascadia Code",monospace;white-space:pre}
+p code,li code{background:var(--cb);border:1px solid var(--bdr);border-radius:3px;padding:.1em .35em;font-size:.82em;font-family:"JetBrains Mono","Fira Code",monospace}
+.box{border-left:3px solid var(--grn);background:var(--sur);border-radius:0 8px 8px 0;padding:.8rem 1.1rem;margin-bottom:.9rem}
+.box.w{border-left-color:var(--amb)}
+.box.i{border-left-color:var(--acc)}
+.box strong{display:block;margin-bottom:.25rem;font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;color:var(--mut)}
+/* setup / teardown banners */
+.setup-banner,.teardown-banner{border-radius:8px;padding:1rem 1.2rem;margin-bottom:1rem}
+.setup-banner{background:#0a1f14;border:1px solid #1a5c38}
+.setup-banner h2{color:#00d488;border-color:#1a5c38}
+.teardown-banner{background:#1a0e0a;border:1px solid #5c2a1a}
+.teardown-banner h2{color:#e87040;border-color:#5c2a1a}
+.copy-btn{float:right;background:transparent;border:1px solid var(--bdr);color:var(--mut);font-size:.72rem;padding:.2rem .55rem;border-radius:4px;cursor:pointer;font-family:monospace;margin-bottom:.3rem}
+.copy-btn:hover{border-color:var(--grn);color:var(--grn)}
+/* quiz */
+.quiz{background:var(--sur);border:1px solid var(--bdr);border-radius:10px;padding:1.2rem;margin-bottom:1.2rem}
+.quiz h3{margin-top:0;font-size:.93rem}
+.opts{list-style:none;padding:0;margin:.8rem 0}
+.opts li{padding:.5rem .9rem;border:1px solid var(--bdr);border-radius:7px;margin-bottom:.4rem;cursor:pointer;font-size:.87rem;transition:border-color .15s,background .15s}
+.opts li:hover{border-color:var(--grn);background:rgba(0,169,114,.05)}
+.opts li.ok{border-color:var(--grn);background:rgba(0,169,114,.12)}
+.opts li.no{border-color:var(--acc);background:rgba(255,54,33,.1)}
+.fb{display:none;font-size:.84rem;margin-top:.6rem;padding:.6rem .9rem;border-radius:7px}
+.fb.show{display:block}
+.fb.ok{background:rgba(0,169,114,.1);color:var(--grn)}
+.fb.no{background:rgba(255,54,33,.1);color:#ff7a6b}
+.pbw{background:var(--sur);border:1px solid var(--bdr);border-radius:999px;height:7px;overflow:hidden;margin-bottom:.3rem}
+.pb{height:100%;background:var(--grn);transition:width .4s;border-radius:999px;width:0%}
+.pl{font-size:.72rem;color:var(--mut);text-align:right}
+.done-box{text-align:center;padding:1.8rem;border:1px solid var(--bdr);border-radius:10px;background:var(--sur);margin-top:1.5rem}
+.done-box h2{border:none;color:var(--grn);font-size:1.3rem}
+.cmd{display:inline-block;background:var(--cb);border:1px solid var(--grn);border-radius:7px;padding:.5rem 1rem;font-family:monospace;font-size:.87rem;color:var(--grn);margin:.8rem 0}
+.nxt-btn{display:inline-block;margin-top:.4rem;padding:.6rem 1.4rem;background:var(--acc);color:white;font-weight:700;font-size:.87rem;border-radius:7px;text-decoration:none}
+footer{margin-top:2.5rem;padding-top:.9rem;border-top:1px solid var(--bdr);color:var(--mut);font-size:.78rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:.4rem}
+footer a{color:var(--mut)}
+</style>
+</head>
+<body><div class="page">
+
+<div class="lh">
+  <div class="ln">Lesson 19 of 19</div>
+  <h1>Narrating Out Loud</h1>
+  <p class="sub">The meta-skill that beats everything — practice until it's reflex</p>
+  <div class="badges"><span class="badge p">All four signals</span></div>
+</div>
+
+<div class="pbw"><div class="pb" id="pb"></div></div>
+<p class="pl" id="pl">0 / 3 checks</p>
+
+<div class="nav"><a href="18-common-spark-errors.html">← 18: Common Errors</a><span>All lessons done 🎉</span></div>
+
+<!-- ── SETUP ────────────────────────────────────────────────────── -->
+<section class="setup-banner">
+<h2>🛠 Setup — run this cell first</h2>
+<p>Paste into a Databricks notebook cell and run before working through the examples below.</p>
+<button class="copy-btn" onclick="copyCode('setup-code')">copy</button>
+<pre id="setup-code"># Lesson 19 — the meta-skill: narrating out loud
+# No Delta tables needed. This lesson is a full dress rehearsal.
+
+print("Lesson 19: Narrating Out Loud")
+print("This is the meta-skill that the interview explicitly grades above all others.")
+print()
+print("Session structure:")
+print("  Part 1: understand WHY narration matters and what it covers")
+print("  Part 2: timed drill — narrate 5 Phase-2 scenarios out loud")
+print("  Part 3: timed drill — narrate 3 Phase-1 scenarios out loud")
+print()
+print("Target: each narration fluent in under 45 seconds.")
+</pre>
+</section>
+
+<!-- ── LESSON BODY ──────────────────────────────────────────────── -->
+
+<section>
+<h2>Why narration is the highest-leverage skill</h2>
+<p>The recruiter email states it directly: <em>"Think Out Loud: This is the most important requirement."</em></p>
+<p>The reason: FDEs sit next to customers. A solution delivered in silence provides no insight into reasoning, no ability to course-correct, no demonstration of the collaborative thinking the role requires. A slightly-wrong answer with clear audible reasoning — catching yourself and recovering — scores higher than a silent correct answer.</p>
+<div class="box i"><strong>Dead air is the enemy.</strong>Every second of silence during a Spark optimization is a missed scoring opportunity.</div>
+</section>
+
+<section>
+<h2>What narration actually covers</h2>
+<ul>
+<li><strong>Before running anything:</strong> "Here's what I think this code is doing... my hypothesis about the bottleneck is..."</li>
+<li><strong>While reading the plan:</strong> "I see two Exchange nodes which means two shuffles — the biggest cost is probably here..."</li>
+<li><strong>While writing code:</strong> "I'm adding broadcast() on the products table because it's tiny — I want to verify that assumption by checking the count..."</li>
+<li><strong>When stuck:</strong> "I'm spending more than 2 minutes on this import — can we bail out and come back?"</li>
+<li><strong>Business translation:</strong> "The customer impact of this change is... instead of reshuffling 100M rows..."</li>
+<li><strong>After using Genie:</strong> "Genie gave me this — before I trust it, let me check the join strategy and make sure there's no serverless-illegal code..."</li>
+</ul>
+</section>
+
+<section>
+<h2>Phase 2 time budget (25 min)</h2>
+<pre># Internalize this clock — say it before Phase 2 starts
+time_budget = {
+    "profile and understand": "~3 min",
+    "state plan, rank by impact": "~3 min",
+    "implement fixes, biggest first": "~15 min",
+    "summarize wins + business translation": "~4 min",
+}
+for phase, budget in time_budget.items():
+    print(f"  {budget}: {phase}")
+
+# The 30-second opening statement (say this at the start of Phase 2)
+opening = (
+    "Let me rank by impact. Shuffles cost the most, so first I'll check the joins --
+"
+    "is anything a sort-merge that should be a broadcast? Then I'll make sure we filter
+"
+    "and select columns before the heavy work. Then partitioning and any Python UDFs.
+"
+    "Skew and recomputation last, if the profile points there. I'll confirm each guess
+"
+    "in the query profile rather than assume."
+)
+print(opening)</pre>
+</section>
+
+<section>
+<h2>Phase 1 time budget (25 min)</h2>
+<pre>time_budget_p1 = {
+    "read and restate existing code + contract": "~5 min",
+    "plan the feature, name edge cases": "~3 min",
+    "implement + quick test": "~13 min",
+    "walk through what you did, what you'd add with more time": "~4 min",
+}
+for phase, budget in time_budget_p1.items():
+    print(f"  {budget}: {phase}")
+
+# The opening statement for Phase 1
+opening_p1 = (
+    "Before I change anything I want to find the entry point and restate what this
+"
+    "code does -- what goes in, what comes out. Then I'll find where it's designed
+"
+    "to be extended. Let me think out loud while I read it."
+)
+print(opening_p1)</pre>
+</section>
+
+<section>
+<h2>Things that score points (say these)</h2>
+<pre"># Commit these phrases to muscle memory
+scoring_lines = [
+    "Before I optimize, let me look at the query profile to see where time actually goes.",
+    "This is a wide transformation, so it triggers a shuffle — that's almost always the most expensive thing here.",
+    "Let me check assumptions: is the right side small enough to broadcast? If it's under ~100 MB, yes.",
+    "I'll write to a Delta table here rather than recompute — this DataFrame is used multiple times downstream.",
+    "Genie suggested .cache() — but we're on serverless where that's restricted, so I'll materialize to Delta instead.",
+    "Can we bail out on this syntax issue? I want to keep the budget on the harder problem.",
+]
+for line in scoring_lines:
+    print(f"  • {line}")
+    print()</pre>
+</section>
+
+
+<!-- ── QUIZZES ──────────────────────────────────────────────────── -->
+<section>
+<h2>Knowledge checks</h2>
+
+<div class="quiz" id="q1">
+  <h3>The recruiter email says 'Think Out Loud: This is the MOST IMPORTANT requirement.' Why does narration matter more than getting the right answer?</h3>
+  <ul class="opts">
+        <li onclick="ans(this,'q1',false)">It doesn't — a correct answer always beats a narrated wrong one.</li>
+        <li onclick="ans(this,'q1',true)">FDEs work with customers who need to understand the reasoning, not just the output. An FDE who thinks silently is untrustworthy in front of a customer — the interview tests the collaborative behavior, not just the answer.</li>
+        <li onclick="ans(this,'q1',false)">Narration helps the interviewer understand what the candidate is typing.</li>
+        <li onclick="ans(this,'q1',false)">It's just a convention of pair-programming interviews.</li>
+  </ul>
+  <div class="fb" id="q1-fb"></div>
+</div>
+<div class="quiz" id="q2">
+  <h3>You're 3 minutes into Phase 2 and stuck on a Python import error. What do you do?</h3>
+  <ul class="opts">
+        <li onclick="ans(this,'q2',false)">Keep debugging until it's resolved — don't move on with a broken import.</li>
+        <li onclick="ans(this,'q2',true)">Use the bail-out: 'I'm spending more than 2 minutes on this import — can we skip and come back? I want to keep the budget on the harder problem.'</li>
+        <li onclick="ans(this,'q2',false)">Ask Genie to fix the import.</li>
+        <li onclick="ans(this,'q2',false)">Apologize and skip it without saying anything.</li>
+  </ul>
+  <div class="fb" id="q2-fb"></div>
+</div>
+<div class="quiz" id="q3">
+  <h3>After fixing a broadcast join, what should you say to the interviewer?</h3>
+  <ul class="opts">
+        <li onclick="ans(this,'q3',false)">Nothing — the code speaks for itself.</li>
+        <li onclick="ans(this,'q3',true)">The business translation: 'Instead of reshuffling 100M rows across the cluster, we send the tiny lookup table to every machine. That's the difference between a 40-minute nightly job and a few minutes.'</li>
+        <li onclick="ans(this,'q3',false)">A technical explanation of how BroadcastHashJoin works internally.</li>
+        <li onclick="ans(this,'q3',false)">Ask if the fix is correct before explaining it.</li>
+  </ul>
+  <div class="fb" id="q3-fb"></div>
+</div>
+</section>
+
+<!-- ── NARRATE IT BACK ─────────────────────────────────────────── -->
+<section>
+<h2>Narrate it back</h2>
+<div class="box i">
+  <strong>Interviewer prompt — say this out loud in under 45 seconds</strong>
+  "The interview is starting. Walk me through your first 60 seconds of Phase 2."
+</div>
+<p><em>Cover: 'Let me read this end to end first and tell you what I think it's doing...' [read aloud] '...so the intent is X, inputs are Y, the output goes to Z. My hunch for the biggest cost is the join here — I can see both sides are large so this is probably a sort-merge join shuffling both sides. Before I touch anything I'll run explain() to confirm and look at the query profile if available. Does that sound like the right starting point?' — this opening demonstrates computational thinking, code stewardship, and customer collaboration in one sentence</em></p>
+</section>
+
+<!-- ── TEARDOWN ─────────────────────────────────────────────────── -->
+<section class="teardown-banner">
+<h2>🧹 Teardown — clean up after the lesson</h2>
+<button class="copy-btn" onclick="copyCode('teardown-code')">copy</button>
+<pre id="teardown-code">print("Lesson 19 complete. You now have all the tools for the interview.")
+print()
+print("Final checklist:")
+print("  [ ] Signed up for Databricks Free Edition")
+print("  [ ] Practiced opening a notebook and running PySpark")
+print("  [ ] Can explain all 6 optimization levers without notes")
+print("  [ ] Can do the 4-step error recovery without prompting")
+print("  [ ] Have used Genie Code at least once")
+print()
+print("The one rule: NARRATE. Think out loud. They're hiring someone to")
+print("sit next to a customer — show them that person.")
+</pre>
+</section>
+
+<!-- ── DONE ────────────────────────────────────────────────────── -->
+<div class="done-box" id="done-box">
+  <h2 id="done-title">Lesson 19 — when you're ready</h2>
+  <p>Pass all three knowledge checks above to unlock the next lesson, or run this now to mark it complete:</p>
+  <div class="cmd">mise run teach:done 19</div>
+  <p style="color:var(--mut);font-size:.82rem;margin-top:.4rem">
+    <code>git add teach/ &amp;&amp; git commit -m "lesson 19 done" &amp;&amp; git push</code>
+  </p>
+  <br><a href="" class="nxt-btn" id="nxt-btn" style="opacity:.45;pointer-events:none"> →</a>
+</div>
+
+<div class="nav" style="margin-top:1.5rem"><a href="18-common-spark-errors.html">← 18: Common Errors</a><span>All lessons done 🎉</span></div>
+<footer>
+  <span>Source: <a href="../../01-Interview-Overview-and-Strategy.md">01-Interview-Overview-and-Strategy.md</a></span>
+  <span>
+    <a href="../reference/interview-cheatsheet.html">Cheat Sheet</a> ·
+    <a href="https://spark.apache.org/docs/3.5.0/api/python/" target="_blank">PySpark 3.5 API</a>
+  </span>
+</footer>
+
+</div>
+<script>
+const FB={
+  q1:{ok:"Correct. The FDE role requires explaining reasoning to customers in real time. Demonstrating that behavior — even on a wrong path that self-corrects — shows the graders they can trust you next to a customer account.",no:"FDEs sit with customers. The interview tests the behavior, not just the answer. Visible reasoning = trustworthy."},
+  q2:{ok:"Correct. The bail-out is explicitly offered in the interview email. Using it shows prioritization — a senior engineering behavior. Burning 5 minutes on a comma when there's a major optimization to find is poor time management.",no:"The bail-out is offered. Using it shows good prioritization. 'I want to keep the budget on the harder problem' is a scoring phrase."},
+  q3:{ok:"Correct. Every fix should end with a customer-translation. The business version of the optimization is what an FDE would tell a customer — it demonstrates both Code Stewardship and Computational Thinking.",no:"Always customer-translate your fixes. The business impact sentence is a direct scoring opportunity."}
+};
+
+const TOTAL=3; let done=0; const answered={};
+function ans(el,qid,ok){
+  if(answered[qid])return; answered[qid]=true;
+  el.classList.add(ok?'ok':'no');
+  const fb=document.getElementById(qid+'-fb');
+  fb.innerHTML=(ok?'✓ ':'✗ ')+FB[qid][ok?'ok':'no'];
+  fb.className='fb show '+(ok?'ok':'no');
+  if(ok){done++; document.getElementById('pb').style.width=Math.round(done/TOTAL*100)+'%'; document.getElementById('pl').textContent=done+' / '+TOTAL+' checks';}
+  if(done===TOTAL){document.getElementById('done-title').textContent='Lesson complete ✓ — mark it done:';const b=document.getElementById('nxt-btn');if(b){b.style.opacity='1';b.style.pointerEvents='auto';}}
+}
+function copyCode(id){const el=document.getElementById(id);if(el){navigator.clipboard.writeText(el.textContent).then(()=>{}).catch(()=>{});}}
+
+</script>
+</body></html>

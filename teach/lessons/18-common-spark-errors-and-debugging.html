@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Lesson 18 — Common Spark Errors &amp; Debugging</title>
+<style>
+:root{--bg:#0f1117;--sur:#1a1d27;--bdr:#2e3147;--acc:#ff3621;--grn:#00a972;--txt:#e8eaf0;--mut:#8b8fa8;--cb:#12151e;--amb:#e8a020;--blu:#4a90e2}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:15px;line-height:1.7;padding:2rem 1rem}
+.page{max-width:800px;margin:0 auto}
+.lh{margin-bottom:2rem}
+.ln{color:var(--acc);font-size:.78rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+h1{font-size:1.85rem;font-weight:800;margin:.2rem 0 .4rem}
+.sub{color:var(--mut);font-size:1rem}
+.badges{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.6rem}
+.badge{font-size:.68rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:.2rem .55rem;border-radius:999px;border:1px solid var(--bdr);color:var(--mut)}
+.badge.p{border-color:var(--acc);color:var(--acc)}
+.nav{display:flex;justify-content:space-between;margin:1.5rem 0;font-size:.84rem;color:var(--mut)}
+.nav a{color:var(--grn);text-decoration:none}
+section{margin-bottom:2rem}
+h2{font-size:1rem;font-weight:700;color:var(--grn);margin-bottom:.6rem;border-bottom:1px solid var(--bdr);padding-bottom:.3rem}
+h3{font-size:.95rem;font-weight:600;margin:1rem 0 .3rem;color:var(--txt)}
+p{margin-bottom:.8rem}
+ul,ol{padding-left:1.4rem;margin-bottom:.8rem}
+li{margin-bottom:.3rem}
+pre{background:var(--cb);border:1px solid var(--bdr);border-radius:8px;padding:1rem 1.2rem;overflow-x:auto;font-size:.82rem;line-height:1.55;margin-bottom:.9rem;font-family:"JetBrains Mono","Fira Code","Cascadia Code",monospace;white-space:pre}
+p code,li code{background:var(--cb);border:1px solid var(--bdr);border-radius:3px;padding:.1em .35em;font-size:.82em;font-family:"JetBrains Mono","Fira Code",monospace}
+.box{border-left:3px solid var(--grn);background:var(--sur);border-radius:0 8px 8px 0;padding:.8rem 1.1rem;margin-bottom:.9rem}
+.box.w{border-left-color:var(--amb)}
+.box.i{border-left-color:var(--acc)}
+.box strong{display:block;margin-bottom:.25rem;font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;color:var(--mut)}
+/* setup / teardown banners */
+.setup-banner,.teardown-banner{border-radius:8px;padding:1rem 1.2rem;margin-bottom:1rem}
+.setup-banner{background:#0a1f14;border:1px solid #1a5c38}
+.setup-banner h2{color:#00d488;border-color:#1a5c38}
+.teardown-banner{background:#1a0e0a;border:1px solid #5c2a1a}
+.teardown-banner h2{color:#e87040;border-color:#5c2a1a}
+.copy-btn{float:right;background:transparent;border:1px solid var(--bdr);color:var(--mut);font-size:.72rem;padding:.2rem .55rem;border-radius:4px;cursor:pointer;font-family:monospace;margin-bottom:.3rem}
+.copy-btn:hover{border-color:var(--grn);color:var(--grn)}
+/* quiz */
+.quiz{background:var(--sur);border:1px solid var(--bdr);border-radius:10px;padding:1.2rem;margin-bottom:1.2rem}
+.quiz h3{margin-top:0;font-size:.93rem}
+.opts{list-style:none;padding:0;margin:.8rem 0}
+.opts li{padding:.5rem .9rem;border:1px solid var(--bdr);border-radius:7px;margin-bottom:.4rem;cursor:pointer;font-size:.87rem;transition:border-color .15s,background .15s}
+.opts li:hover{border-color:var(--grn);background:rgba(0,169,114,.05)}
+.opts li.ok{border-color:var(--grn);background:rgba(0,169,114,.12)}
+.opts li.no{border-color:var(--acc);background:rgba(255,54,33,.1)}
+.fb{display:none;font-size:.84rem;margin-top:.6rem;padding:.6rem .9rem;border-radius:7px}
+.fb.show{display:block}
+.fb.ok{background:rgba(0,169,114,.1);color:var(--grn)}
+.fb.no{background:rgba(255,54,33,.1);color:#ff7a6b}
+.pbw{background:var(--sur);border:1px solid var(--bdr);border-radius:999px;height:7px;overflow:hidden;margin-bottom:.3rem}
+.pb{height:100%;background:var(--grn);transition:width .4s;border-radius:999px;width:0%}
+.pl{font-size:.72rem;color:var(--mut);text-align:right}
+.done-box{text-align:center;padding:1.8rem;border:1px solid var(--bdr);border-radius:10px;background:var(--sur);margin-top:1.5rem}
+.done-box h2{border:none;color:var(--grn);font-size:1.3rem}
+.cmd{display:inline-block;background:var(--cb);border:1px solid var(--grn);border-radius:7px;padding:.5rem 1rem;font-family:monospace;font-size:.87rem;color:var(--grn);margin:.8rem 0}
+.nxt-btn{display:inline-block;margin-top:.4rem;padding:.6rem 1.4rem;background:var(--acc);color:white;font-weight:700;font-size:.87rem;border-radius:7px;text-decoration:none}
+footer{margin-top:2.5rem;padding-top:.9rem;border-top:1px solid var(--bdr);color:var(--mut);font-size:.78rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:.4rem}
+footer a{color:var(--mut)}
+</style>
+</head>
+<body><div class="page">
+
+<div class="lh">
+  <div class="ln">Lesson 18 of 19</div>
+  <h1>Common Spark Errors &amp; Debugging</h1>
+  <p class="sub">The 4-step recovery script — what they grade under Resilience</p>
+  <div class="badges"><span class="badge p">Resilience</span></div>
+</div>
+
+<div class="pbw"><div class="pb" id="pb"></div></div>
+<p class="pl" id="pl">0 / 3 checks</p>
+
+<div class="nav"><a href="17-genie-code-prompting.html">← 17: Genie Code</a><a href="19-narrating-out-loud.html">19: Narrating Out Loud →</a></div>
+
+<!-- ── SETUP ────────────────────────────────────────────────────── -->
+<section class="setup-banner">
+<h2>🛠 Setup — run this cell first</h2>
+<p>Paste into a Databricks notebook cell and run before working through the examples below.</p>
+<button class="copy-btn" onclick="copyCode('setup-code')">copy</button>
+<pre id="setup-code"># Lesson 18 setup — create tables that will trigger real Spark errors
+from pyspark.sql import functions as F
+from pyspark.sql.types import *
+import datetime, random
+
+spark.sql("CREATE DATABASE IF NOT EXISTS lesson_db")
+
+# table with potential ambiguous column names
+orders = spark.createDataFrame(
+    [(i, random.randint(1,10), float(i*5)) for i in range(1000)],
+    ["id","customer_id","amount"]
+)
+orders.write.mode("overwrite").format("delta").saveAsTable("lesson_db.err_orders")
+
+customers = spark.createDataFrame(
+    [(i, f"Customer {i}") for i in range(1,11)],
+    ["id","name"]   # note: 'id' collides with orders.id
+)
+customers.write.mode("overwrite").format("delta").saveAsTable("lesson_db.err_customers")
+
+print("Setup complete: lesson_db.err_orders, lesson_db.err_customers")
+print("Both tables have a column named 'id' — ready to trigger ambiguous column errors.")
+</pre>
+</section>
+
+<!-- ── LESSON BODY ──────────────────────────────────────────────── -->
+
+<section>
+<h2>The 4-step recovery script (say it every time)</h2>
+<ol>
+<li><strong>Read the error out loud.</strong> "It says AnalysisException: cannot resolve 'amounts'..." Naming the error is half the fix.</li>
+<li><strong>State a hypothesis.</strong> "I'm guessing the column is 'amount', not 'amounts'."</li>
+<li><strong>Test the smallest possible thing.</strong> <code>df.columns</code> or <code>df.limit(1).show()</code></li>
+<li><strong>Narrate the fix and side-effects.</strong> "I'll change it to 'amount' — and check there are no other typos."</li>
+</ol>
+<div class="box i"><strong>Resilience is graded</strong>A clean recovery scores HIGHER than never failing. The sequence read → hypothesize → test → narrate is what they're watching for.</div>
+</section>
+
+<section>
+<h2>Error 1: AnalysisException — ambiguous column</h2>
+<pre>from pyspark.sql import functions as F
+orders    = spark.table("lesson_db.err_orders")    # has col 'id'
+customers = spark.table("lesson_db.err_customers") # also has col 'id'
+
+# This FAILS: Reference 'id' is ambiguous (both tables have 'id')
+try:
+    bad = orders.join(customers, orders.id == customers.id).select("id","name","amount")
+    bad.show()
+except Exception as e:
+    print("Error:", type(e).__name__, str(e)[:120])
+
+# FIX 1: use string join key (collapses to one 'id' column)
+# Only works when the key has the same name on both sides
+# BUT here the semantic meaning differs (orders.id = order ID, customers.id = customer ID)
+# So the right join is on customer_id, not id:
+fixed = orders.join(customers, orders.customer_id == customers.id).select(
+    orders.id.alias("order_id"), customers.name, orders.amount
+)
+fixed.show(5)</pre>
+</section>
+
+<section>
+<h2>Error 2: column typo (AnalysisException: cannot resolve)</h2>
+<pre">try:
+    orders.select(F.col("amounts")).show()  # typo: 'amounts' not 'amount'
+except Exception as e:
+    print("Error:", str(e)[:100])
+
+# 4-step recovery:
+# 1. Read: "cannot resolve 'amounts' given input columns [id, customer_id, amount]"
+# 2. Hypothesis: column name typo — it's 'amount' not 'amounts'
+# 3. Test: print the actual columns
+print("Actual columns:", orders.columns)
+# 4. Fix:
+orders.select(F.col("amount")).show(3)</pre>
+</section>
+
+<section>
+<h2>Error 3: collect() OOM — the silent danger</h2>
+<pre># Demonstrate why collect() is dangerous
+# (We'll simulate with a small table, but in prod this OOMs the driver)
+print("Safe: limit + show")
+orders.limit(5).show()
+
+print("Safe: write to Delta (distributed)")
+orders.write.format("noop").mode("overwrite").save()
+
+print("Dangerous (don't run on large data):")
+print("  rows = orders.collect()  ← pulls ALL rows to driver")
+print("  Use show(n) or write() instead")</pre>
+</section>
+
+<section>
+<h2>The diagnostic checklist</h2>
+<pre># When something is wrong and you don't know what:
+orders.printSchema()                     # are types what you expect?
+orders.limit(5).show(truncate=False)    # what does a real row look like?
+
+# Count before/after each transformation
+print("Before filter:", orders.count())
+filtered = orders.where(F.col("amount") > 100)
+print("After filter:", filtered.count())    # should drop
+
+# Check partition distribution (skew?)
+orders.groupBy(F.spark_partition_id().alias("pid")).count().orderBy(F.desc("count")).show(5)
+
+# Read the plan
+filtered.explain("formatted")</pre>
+</section>
+
+
+<!-- ── QUIZZES ──────────────────────────────────────────────────── -->
+<section>
+<h2>Knowledge checks</h2>
+
+<div class="quiz" id="q1">
+  <h3>You get: AnalysisException: Reference 'id' is ambiguous, could be: id#1, id#2. What's the cause and fix?</h3>
+  <ul class="opts">
+        <li onclick="ans(this,'q1',false)">A column named 'id' has duplicate values.</li>
+        <li onclick="ans(this,'q1',true)">Both sides of the join have a column named 'id'. Fix: alias them (orders.id.alias('order_id')) or use a string join key that collapses to one column.</li>
+        <li onclick="ans(this,'q1',false)">'id' is a reserved keyword in Spark SQL.</li>
+        <li onclick="ans(this,'q1',false)">The DataFrame was created with duplicate column definitions.</li>
+  </ul>
+  <div class="fb" id="q1-fb"></div>
+</div>
+<div class="quiz" id="q2">
+  <h3>You hit an error. Describe the 4-step recovery sequence in order.</h3>
+  <ul class="opts">
+        <li onclick="ans(this,'q2',false)">Fix → test → document → move on.</li>
+        <li onclick="ans(this,'q2',true)">Read the error out loud → state a hypothesis → test the smallest thing → narrate the fix and side-effects.</li>
+        <li onclick="ans(this,'q2',false)">Google the error → copy a Stack Overflow answer → run it → hope it works.</li>
+        <li onclick="ans(this,'q2',false)">Ask the interviewer what's wrong → let them suggest a fix → implement it.</li>
+  </ul>
+  <div class="fb" id="q2-fb"></div>
+</div>
+<div class="quiz" id="q3">
+  <h3>A job runs without an error but the count is 10% lower than expected after a join. What do you check first?</h3>
+  <ul class="opts">
+        <li onclick="ans(this,'q3',false)">Re-run the job — it was probably a transient error.</li>
+        <li onclick="ans(this,'q3',true)">Check the join type (inner vs left vs right). An inner join silently drops rows that don't match on both sides.</li>
+        <li onclick="ans(this,'q3',false)">Check if the cluster ran out of memory.</li>
+        <li onclick="ans(this,'q3',false)">Check the Spark UI for failed tasks.</li>
+  </ul>
+  <div class="fb" id="q3-fb"></div>
+</div>
+</section>
+
+<!-- ── NARRATE IT BACK ─────────────────────────────────────────── -->
+<section>
+<h2>Narrate it back</h2>
+<div class="box i">
+  <strong>Interviewer prompt — say this out loud in under 45 seconds</strong>
+  "You run a join and the result has 15% fewer rows than expected. No error was thrown. Walk me through your diagnosis."
+</div>
+<p><em>Cover: 1) read: no error but row count is off → 2) hypothesis: join type is wrong — inner join is dropping non-matching rows → 3) test smallest thing: print left.count(), right.count(), joined.count() and compare → also check: left.select('customer_id').distinct().count() vs right.select('customer_id').distinct().count() — any keys in left but not right? → 4) fix: switch inner join to left join if you want to keep all left rows → also check for null keys and duplicate rows on either side of the join</em></p>
+</section>
+
+<!-- ── TEARDOWN ─────────────────────────────────────────────────── -->
+<section class="teardown-banner">
+<h2>🧹 Teardown — clean up after the lesson</h2>
+<button class="copy-btn" onclick="copyCode('teardown-code')">copy</button>
+<pre id="teardown-code"># Teardown lesson 18
+spark.sql("DROP TABLE IF EXISTS lesson_db.err_orders")
+spark.sql("DROP TABLE IF EXISTS lesson_db.err_customers")
+spark.sql("DROP DATABASE IF EXISTS lesson_db")
+print("Done.")
+</pre>
+</section>
+
+<!-- ── DONE ────────────────────────────────────────────────────── -->
+<div class="done-box" id="done-box">
+  <h2 id="done-title">Lesson 18 — when you're ready</h2>
+  <p>Pass all three knowledge checks above to unlock the next lesson, or run this now to mark it complete:</p>
+  <div class="cmd">mise run teach:done 18</div>
+  <p style="color:var(--mut);font-size:.82rem;margin-top:.4rem">
+    <code>git add teach/ &amp;&amp; git commit -m "lesson 18 done" &amp;&amp; git push</code>
+  </p>
+  <br><a href="19-narrating-out-loud.html" class="nxt-btn" id="nxt-btn" style="opacity:.45;pointer-events:none">19: Narrating Out Loud →</a>
+</div>
+
+<div class="nav" style="margin-top:1.5rem"><a href="17-genie-code-prompting.html">← 17: Genie Code</a><a href="19-narrating-out-loud.html">19: Narrating Out Loud →</a></div>
+<footer>
+  <span>Source: <a href="../../15-Common-Spark-Errors-Debug.md">15-Common-Spark-Errors-Debug.md</a></span>
+  <span>
+    <a href="../reference/interview-cheatsheet.html">Cheat Sheet</a> ·
+    <a href="https://spark.apache.org/docs/3.5.0/api/python/" target="_blank">PySpark 3.5 API</a>
+  </span>
+</footer>
+
+</div>
+<script>
+const FB={
+  q1:{ok:"Correct. Both tables have 'id' so Spark can't determine which one you mean. Fix options: use df1.id vs df2.id explicitly and alias, or join on a string key which collapses duplicates, or rename a column before joining.",no:"Ambiguous reference = same column name on both sides of a join. Fix: use df1.col vs df2.col explicitly, then alias."},
+  q2:{ok:"Correct. Read → hypothesize → test small → narrate fix. This sequence is exactly what the Resilience signal grades. A clean recovery using this sequence scores higher than never failing.",no:"Read → hypothesize → test small → narrate fix. This is the graded recovery sequence."},
+  q3:{ok:"Correct. Silent wrong counts after joins are almost always a join type issue. An inner join drops non-matching rows silently. If you expected to keep all rows from the left table, you need a left join. Always print counts before and after joins during development.",no:"Silent count drop after join = inner vs left/right mismatch. Check join type first."}
+};
+
+const TOTAL=3; let done=0; const answered={};
+function ans(el,qid,ok){
+  if(answered[qid])return; answered[qid]=true;
+  el.classList.add(ok?'ok':'no');
+  const fb=document.getElementById(qid+'-fb');
+  fb.innerHTML=(ok?'✓ ':'✗ ')+FB[qid][ok?'ok':'no'];
+  fb.className='fb show '+(ok?'ok':'no');
+  if(ok){done++; document.getElementById('pb').style.width=Math.round(done/TOTAL*100)+'%'; document.getElementById('pl').textContent=done+' / '+TOTAL+' checks';}
+  if(done===TOTAL){document.getElementById('done-title').textContent='Lesson complete ✓ — mark it done:';const b=document.getElementById('nxt-btn');if(b){b.style.opacity='1';b.style.pointerEvents='auto';}}
+}
+function copyCode(id){const el=document.getElementById(id);if(el){navigator.clipboard.writeText(el.textContent).then(()=>{}).catch(()=>{});}}
+
+</script>
+</body></html>

@@ -1,0 +1,9 @@
+[tasks.upload-fde]
+description = "Import the local fde-prep directory into the Databricks workspace"
+run = '''
+user=$(databricks current-user me -p free| jq -r .userName)
+databricks workspace import-dir \
+  . \
+  /Workspace/Users/${user}/fde \
+  --overwrite --profile free
+'''

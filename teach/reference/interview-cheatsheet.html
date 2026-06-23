@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Databricks FDE Interview — Cheat Sheet</title>
+<style>
+/* ── base ──────────────────────────────────────────────────────────── */
+:root {
+  --ink:     #0f1117;
+  --mid:     #3a3d4e;
+  --light:   #6b6e82;
+  --rule:    #c8cad8;
+  --accent:  #c0392b;
+  --green:   #1a7a50;
+  --blue:    #1a4a8a;
+  --amber:   #7a5200;
+  --bg-code: #f4f5f8;
+  --bg-tip:  #f0f4ff;
+  --bg-warn: #fff8f0;
+  --bg-good: #f0faf4;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: white;
+  color: var(--ink);
+  font-family: "Georgia", "Times New Roman", serif;
+  font-size: 9.5pt;
+  line-height: 1.55;
+  padding: 0;
+}
+.page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px 32px;
+}
+
+/* ── print geometry ────────────────────────────────────────────────── */
+@media print {
+  body { font-size: 8.5pt; }
+  .page { padding: 0; max-width: 100%; }
+  .sheet { page-break-after: always; padding: 12mm 14mm; }
+  .sheet:last-child { page-break-after: avoid; }
+  a { color: inherit !important; text-decoration: none; }
+  .no-print { display: none !important; }
+}
+@media screen {
+  .sheet {
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 28px 36px;
+    margin-bottom: 32px;
+  }
+}
+
+/* ── sheet header ──────────────────────────────────────────────────── */
+.sheet-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  border-bottom: 2.5px solid var(--ink);
+  padding-bottom: 5px;
+  margin-bottom: 14px;
+}
+.sheet-title { font-size: 14pt; font-weight: 900; font-family: "Helvetica Neue", Arial, sans-serif; letter-spacing: -0.03em; }
+.sheet-phase { font-size: 7.5pt; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--light); }
+
+/* ── column layout ─────────────────────────────────────────────────── */
+.cols-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.cols-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+@media print { .cols-2, .cols-3 { break-inside: avoid; } }
+
+/* ── section / sub-headers ─────────────────────────────────────────── */
+h2 {
+  font-family: "Helvetica Neue", Arial, sans-serif;
+  font-size: 8.5pt;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 2px;
+  margin: 13px 0 6px;
+}
+h3 {
+  font-family: "Helvetica Neue", Arial, sans-serif;
+  font-size: 8pt;
+  font-weight: 700;
+  color: var(--blue);
+  margin: 9px 0 3px;
+}
+h2:first-child, h3:first-child { margin-top: 0; }
+
+/* ── body copy ─────────────────────────────────────────────────────── */
+p { margin-bottom: 5px; }
+ul, ol { padding-left: 1.3em; margin-bottom: 5px; }
+li { margin-bottom: 2px; }
+strong { font-weight: 700; }
+em { font-style: italic; color: var(--mid); }
+
+/* ── code ──────────────────────────────────────────────────────────── */
+code {
+  font-family: "JetBrains Mono", "Fira Code", "Consolas", monospace;
+  font-size: 7.8pt;
+  background: var(--bg-code);
+  border: 1px solid #dde;
+  border-radius: 2px;
+  padding: 0 3px;
+}
+pre {
+  font-family: "JetBrains Mono", "Fira Code", "Consolas", monospace;
+  font-size: 7.5pt;
+  background: var(--bg-code);
+  border: 1px solid #dde;
+  border-radius: 3px;
+  padding: 7px 10px;
+  margin: 5px 0;
+  line-height: 1.45;
+  overflow-x: auto;
+  white-space: pre-wrap;
+}
+.cm  { color: #808898; }  /* comment */
+.kw  { color: #8800aa; }  /* keyword */
+.fn  { color: #0060a0; }  /* function */
+.st  { color: #006600; }  /* string */
+.nb  { color: #aa5500; }  /* number */
+
+/* ── callout boxes ─────────────────────────────────────────────────── */
+.tip  { background: var(--bg-tip);  border-left: 3px solid var(--blue);  padding: 6px 10px; border-radius: 0 3px 3px 0; margin: 6px 0; }
+.warn { background: var(--bg-warn); border-left: 3px solid var(--amber); padding: 6px 10px; border-radius: 0 3px 3px 0; margin: 6px 0; }
+.good { background: var(--bg-good); border-left: 3px solid var(--green); padding: 6px 10px; border-radius: 0 3px 3px 0; margin: 6px 0; }
+.label { display: inline-block; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 6.5pt; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--light); margin-bottom: 2px; }
+
+/* ── narrate box ───────────────────────────────────────────────────── */
+.narrate {
+  background: #fff8f8;
+  border: 1px solid #e8b0a8;
+  border-left: 4px solid var(--accent);
+  border-radius: 0 4px 4px 0;
+  padding: 7px 11px;
+  margin: 7px 0;
+}
+.narrate .q {
+  font-family: "Helvetica Neue", Arial, sans-serif;
+  font-size: 7.5pt; font-weight: 700; color: var(--accent);
+  margin-bottom: 3px;
+}
+.narrate .a {
+  font-size: 8pt; color: var(--mid); font-style: italic;
+}
+
+/* ── table ─────────────────────────────────────────────────────────── */
+table { border-collapse: collapse; width: 100%; margin: 6px 0; font-size: 8pt; }
+th {
+  font-family: "Helvetica Neue", Arial, sans-serif;
+  font-size: 7pt; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
+  background: #eeeef4; color: var(--mid);
+  padding: 4px 7px; border: 1px solid var(--rule); text-align: left;
+}
+td { padding: 3px 7px; border: 1px solid var(--rule); vertical-align: top; }
+tr:nth-child(even) td { background: #fafafa; }
+
+/* ── lever cards ────────────────────────────────────────────────────── */
+.lever { border: 1px solid var(--rule); border-radius: 4px; padding: 8px 11px; margin-bottom: 9px; break-inside: avoid; }
+.lever-title { font-family: "Helvetica Neue", Arial, sans-serif; font-size: 8.5pt; font-weight: 800; color: var(--ink); margin-bottom: 3px; }
+.lever-title span { color: var(--accent); margin-right: 4px; }
+.symptom { color: var(--amber); font-size: 7.8pt; margin-bottom: 2px; }
+.customer { color: var(--green); font-size: 7.8pt; font-style: italic; margin-top: 4px; }
+
+/* ── checklist ──────────────────────────────────────────────────────── */
+.checklist { list-style: none; padding: 0; }
+.checklist li { padding: 2px 0 2px 18px; position: relative; }
+.checklist li::before { content: "☐"; position: absolute; left: 0; color: var(--light); }
+
+/* ── cover ──────────────────────────────────────────────────────────── */
+.cover {
+  text-align: center;
+  padding: 40px 0 30px;
+  border-bottom: 3px double var(--ink);
+  margin-bottom: 20px;
+}
+.cover h1 { font-family: "Helvetica Neue", Arial, sans-serif; font-size: 20pt; font-weight: 900; letter-spacing: -0.04em; }
+.cover .sub { font-size: 10pt; color: var(--mid); margin-top: 4px; }
+.cover .meta { font-size: 8pt; color: var(--light); margin-top: 10px; font-family: monospace; }
+.phase-box {
+  display: inline-block; border: 2px solid var(--ink); border-radius: 4px;
+  padding: 10px 24px; margin: 16px 8px 0;
+  font-family: "Helvetica Neue", Arial, sans-serif;
+}
+.phase-box .ph { font-size: 7pt; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--light); }
+.phase-box .desc { font-size: 10pt; font-weight: 700; margin: 3px 0 1px; }
+.phase-box .time { font-size: 8pt; color: var(--accent); font-weight: 700; }
+
+/* ── print button ───────────────────────────────────────────────────── */
+.print-btn {
+  display: inline-block; padding: 8px 20px; background: var(--accent); color: white;
+  font-family: "Helvetica Neue", Arial, sans-serif; font-size: 9pt; font-weight: 700;
+  border: none; border-radius: 4px; cursor: pointer; margin: 0 0 20px;
+}
+.print-btn:hover { opacity: 0.85; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- ── print button (screen only) ──────────────────────────────────── -->
+<div class="no-print" style="text-align:right; padding: 0 0 12px">
+  <button class="print-btn" onclick="window.print()">Print / Save as PDF</button>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     COVER
+════════════════════════════════════════════════════════════════════ -->
+<div class="sheet">
+  <div class="cover">
+    <h1>Databricks FDE Interview</h1>
+    <p class="sub">Reference Cheat Sheet — print, fold, carry</p>
+    <div>
+      <div class="phase-box">
+        <div class="ph">Phase 1</div>
+        <div class="desc">Python Feature Dev</div>
+        <div class="time">~25 min</div>
+      </div>
+      <div class="phase-box">
+        <div class="ph">Phase 2</div>
+        <div class="desc">Spark Optimization</div>
+        <div class="time">~25 min</div>
+      </div>
+    </div>
+    <p class="meta">Graded signals: Computational Thinking · Code Stewardship · AI Stewardship · Resilience</p>
+  </div>
+
+  <div class="tip">
+    <div class="label">The one rule</div>
+    <strong>Narrate everything.</strong> A slightly-wrong answer where you reason out loud, catch yourself, and recover scores higher than a correct answer delivered in silence. Think like a customer is watching — because one is.
+  </div>
+
+  <h2>Opening move for Phase 2 (Spark)</h2>
+  <div class="narrate">
+    <div class="q">Say this in the first 30 seconds of Phase 2:</div>
+    <div class="a">"Let me rank by impact. Shuffles cost the most, so first I'll check the joins — is anything a sort-merge that should be a broadcast? Then I'll make sure we filter and select columns before the heavy work. Then partitioning and any Python UDFs. I'll confirm each guess in the query profile before I change anything."</div>
+  </div>
+
+  <h2>Opening move for Phase 1 (Python)</h2>
+  <div class="narrate">
+    <div class="q">Say this before touching any code:</div>
+    <div class="a">"Before I change anything I want to find the entry point, trace the data contract — what goes in, what comes out — and identify where this is designed to be extended. Let me restate what it does first."</div>
+  </div>
+
+  <h2>Quick reference index</h2>
+  <div class="cols-2">
+    <div>
+      <strong>Page 2 — Spark Mental Models</strong>
+      <ul>
+        <li>Lazy eval &amp; actions</li>
+        <li>Partitions &amp; parallelism</li>
+        <li>Narrow vs wide · shuffle</li>
+        <li>Jobs → Stages → Tasks</li>
+        <li>Catalyst &amp; AQE · Tungsten / Photon</li>
+        <li>Joins · skew · driver vs executors</li>
+      </ul>
+    </div>
+    <div>
+      <strong>Page 3 — Optimization Levers</strong>
+      <ul>
+        <li>Lever 1: Broadcast joins</li>
+        <li>Lever 2: Filter &amp; project early</li>
+        <li>Lever 3: Partition sizing</li>
+        <li>Lever 4: UDF avoidance</li>
+        <li>Lever 5: Skew handling</li>
+        <li>Lever 6: Cache / materialize</li>
+      </ul>
+      <strong>Page 4 — Delta Lake</strong>
+      <ul>
+        <li>MERGE · SCD2 · Time travel</li>
+        <li>OPTIMIZE · VACUUM · Liquid Clustering</li>
+        <li>Common mistakes candidates make</li>
+      </ul>
+    </div>
+  </div>
+  <div class="cols-2" style="margin-top:10px">
+    <div>
+      <strong>Page 5 — Python Feature Dev</strong>
+      <ul>
+        <li>5-step code reading protocol</li>
+        <li>Data engineering patterns</li>
+        <li>Medallion · idempotent loads · SCD</li>
+      </ul>
+    </div>
+    <div>
+      <strong>Page 6 — AI Stewardship + Narrate It Back</strong>
+      <ul>
+        <li>Genie Code: good prompts</li>
+        <li>6-point audit checklist</li>
+        <li>Hallucinations to catch</li>
+        <li>All "narrate it back" prompts</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     PAGE 2 — SPARK MENTAL MODELS
+════════════════════════════════════════════════════════════════════ -->
+<div class="sheet">
+  <div class="sheet-header">
+    <div class="sheet-title">Spark Mental Models</div>
+    <div class="sheet-phase">Phase 2 — Computational Thinking</div>
+  </div>
+
+  <div class="cols-2">
+    <!-- LEFT -->
+    <div>
+      <h2>1. Lazy eval — transformations vs actions</h2>
+      <p><strong>Transformations</strong> (lazy — return a DataFrame, nothing runs):</p>
+      <p><code>select</code> <code>filter</code> <code>withColumn</code> <code>join</code> <code>groupBy().agg()</code> <code>repartition</code></p>
+      <p><strong>Actions</strong> (eager — trigger a job):</p>
+      <p><code>count</code> <code>collect</code> <code>show</code> <code>write</code> <code>toPandas</code> <code>take</code></p>
+      <div class="tip">
+        <div class="label">One-liner</div>
+        "Transformations just extend the plan — the cost only lands when I call an action. Catalyst sees the whole chain first so it can reorder, prune, and pick join strategies."
+      </div>
+      <div class="warn">
+        <div class="label">Trap</div>
+        <code>count()</code> in a loop re-runs the <em>entire</em> upstream pipeline every time. Call it out if you see it.
+      </div>
+
+      <h2>2. Partitions — the unit of parallelism</h2>
+      <p>1 partition = 1 task = 1 core. Aim for <strong>low hundreds of MB each</strong>.</p>
+      <ul>
+        <li><strong>Too few</strong> → idle cores, memory pressure</li>
+        <li><strong>Too many tiny</strong> → scheduling overhead, small-files problem</li>
+      </ul>
+      <p><code>spark.sql.shuffle.partitions</code> = 200 (default). AQE coalesces down automatically.</p>
+
+      <h2>3. Narrow vs wide</h2>
+      <table>
+        <tr><th>Type</th><th>Movement</th><th>Examples</th></tr>
+        <tr><td><strong>Narrow</strong></td><td>No data moves (stays on machine)</td><td><code>select</code> <code>filter</code> <code>withColumn</code> <code>union</code></td></tr>
+        <tr><td><strong>Wide</strong></td><td>Shuffle — data crosses network</td><td><code>groupBy</code> <code>join</code> <code>distinct</code> <code>orderBy</code></td></tr>
+      </table>
+      <div class="tip">
+        <div class="label">One-liner</div>
+        "Narrow stays on the same machine. Wide shuffles across the network — and the shuffle is where time and money go."
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div>
+      <h2>4. Jobs → Stages → Tasks</h2>
+      <ul>
+        <li><strong>Job</strong> — one action call</li>
+        <li><strong>Stage</strong> — split at every shuffle boundary (<code>Exchange</code> node in plan)</li>
+        <li><strong>Task</strong> — one partition, on one core, in one stage</li>
+      </ul>
+      <p>"How many stages?" ≈ "How many shuffles?" Fewer = faster.</p>
+      <p>Diagnose: <code>df.explain("formatted")</code> — look for <code>Exchange</code>, <code>SortMergeJoin</code>, missing <code>PushedFilters</code>.</p>
+
+      <h2>5. Catalyst &amp; AQE</h2>
+      <p><strong>Catalyst</strong> — rewrites the logical plan before execution:</p>
+      <ul>
+        <li>Predicate pushdown to scan</li>
+        <li>Column pruning</li>
+        <li>Join strategy selection</li>
+      </ul>
+      <p><strong>AQE</strong> (on by default) — re-optimizes <em>during</em> execution:</p>
+      <ul>
+        <li>Coalesces shuffle partitions</li>
+        <li>Promotes sort-merge → broadcast at runtime</li>
+        <li>Splits skewed partitions</li>
+      </ul>
+      <div class="warn">
+        <div class="label">Talking point</div>
+        "AQE handles partition coalescing and skew, but it can't fix bad logic — it won't avoid a shuffle I didn't need, or fix a Python UDF."
+      </div>
+
+      <h2>6. Tungsten / Photon</h2>
+      <p><strong>Tungsten</strong> — compact binary formats + whole-stage codegen (JVM). <strong>Photon</strong> — Databricks native C++ vectorized engine. Both break when you use a Python UDF (data must serialize out to Python row-by-row). Use built-ins to stay in the fast path.</p>
+
+      <h2>7. Joins</h2>
+      <table>
+        <tr><th>Strategy</th><th>When</th><th>Cost</th></tr>
+        <tr><td><strong>Broadcast hash</strong></td><td>One side small (≤~10 MB default; AQE can trigger)</td><td>Cheap — only small side ships; big side stays put</td></tr>
+        <tr><td><strong>Sort-merge</strong></td><td>Both sides large</td><td>Shuffles &amp; sorts both sides</td></tr>
+      </table>
+      <p>Force it: <code>fact.join(broadcast(dim), "id")</code></p>
+
+      <h2>8. Driver vs executors</h2>
+      <p><code>collect()</code> / <code>toPandas()</code> pulls <strong>all rows to the driver</strong>. On large data → OOM. Use <code>show(n)</code> / <code>limit(n).show()</code> or <code>write</code> instead.</p>
+    </div>
+  </div>
+
+  <div class="narrate" style="margin-top:10px">
+    <div class="q">Narrate it back — "Walk me through what happens when I call df.groupBy('country').agg(sum('amount')).count()"</div>
+    <div class="a">groupBy and agg are transformations → they extend the logical plan. count() is the action → Catalyst optimizes the whole chain (pushes filters, picks join strategy) → physical plan produced with Exchange nodes marking shuffle boundaries → job submitted → stages cut at each Exchange → each stage runs one task per partition in parallel across cores → count result returned to the driver.</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     PAGE 3 — OPTIMIZATION LEVERS
+════════════════════════════════════════════════════════════════════ -->
+<div class="sheet">
+  <div class="sheet-header">
+    <div class="sheet-title">Optimization Levers</div>
+    <div class="sheet-phase">Phase 2 — find 4–6 of these in the slow app</div>
+  </div>
+
+  <div class="cols-2">
+    <div>
+      <div class="lever">
+        <div class="lever-title"><span>1</span>Broadcast joins — eliminate the big-side shuffle</div>
+        <div class="symptom">Symptom: plan shows SortMergeJoin + Exchange on both sides; one side is a small lookup table.</div>
+        <pre><code><span class="cm"># BEFORE</span>
+result = fact.join(dim, <span class="st">"product_id"</span>)   <span class="cm"># shuffles 100M rows</span>
+
+<span class="cm"># AFTER</span>
+<span class="kw">from</span> pyspark.sql.functions <span class="kw">import</span> broadcast
+result = fact.join(broadcast(dim), <span class="st">"product_id"</span>)</code></pre>
+        <div class="warn" style="margin:3px 0">Watch out: only broadcast if the small side truly fits in executor memory (≤ ~100 MB). AQE may auto-broadcast, but an explicit hint is reliable.</div>
+        <div class="customer">"Instead of reshuffling 100M rows we send 5k rows to every machine — minutes vs seconds."</div>
+      </div>
+
+      <div class="lever">
+        <div class="lever-title"><span>2</span>Filter &amp; project early — predicate pushdown</div>
+        <div class="symptom">Symptom: select("*"), joins and aggregations, then a WHERE at the end.</div>
+        <pre><code><span class="cm"># BEFORE</span>
+df = spark.table(<span class="st">"events"</span>)              <span class="cm"># 200 cols, all dates</span>
+out = df.join(other, <span class="st">"id"</span>).groupBy(<span class="st">"country"</span>)
+        .agg(F.sum(<span class="st">"amount"</span>)).where(col(<span class="st">"year"</span>)==<span class="nb">2025</span>)
+
+<span class="cm"># AFTER</span>
+df = (spark.table(<span class="st">"events"</span>)
+        .where(col(<span class="st">"year"</span>)==<span class="nb">2025</span>)       <span class="cm"># partition prune</span>
+        .select(<span class="st">"id"</span>,<span class="st">"country"</span>,<span class="st">"amount"</span>)) <span class="cm"># projection prune</span></code></pre>
+        <div class="customer">"We were loading 200 columns for all time just to use 3 of them for one year."</div>
+      </div>
+
+      <div class="lever">
+        <div class="lever-title"><span>3</span>Fix partitioning — repartition vs coalesce</div>
+        <div class="symptom">Symptom: 200 tiny tasks for a small dataset, or 4 giant tasks choking a stage.</div>
+        <pre><code><span class="cm"># Reduce without shuffle (before write) — narrow, cheap</span>
+df.coalesce(<span class="nb">8</span>).write.format(<span class="st">"delta"</span>).save(path)
+
+<span class="cm"># Redistribute WITH shuffle — use when increasing or de-skewing</span>
+df.repartition(<span class="nb">200</span>, <span class="st">"customer_id"</span>)
+
+<span class="cm"># Right-size for small dataset; AQE also does this</span>
+spark.conf.set(<span class="st">"spark.sql.shuffle.partitions"</span>, <span class="nb">64</span>)</code></pre>
+        <div class="customer">"2,000 tiny output files make every downstream read slow — coalescing writes a handful of right-sized files."</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="lever">
+        <div class="lever-title"><span>4</span>Replace Python UDFs with built-ins</div>
+        <div class="symptom">Symptom: udf(lambda ...) doing what a built-in function could do.</div>
+        <pre><code><span class="cm"># BEFORE — row-by-row serialization, blocks optimizer</span>
+upper_udf = udf(<span class="kw">lambda</span> s: s.upper(), StringType())
+df = df.withColumn(<span class="st">"u"</span>, upper_udf(<span class="st">"name"</span>))
+
+<span class="cm"># AFTER — vectorized, Photon-friendly</span>
+df = df.withColumn(<span class="st">"u"</span>, F.upper(<span class="st">"name"</span>))</code></pre>
+        <p>If custom logic is unavoidable → use a <strong>vectorized (pandas) UDF</strong>: batch Arrow, not row-by-row.</p>
+        <div class="customer">"That UDF hands every row to Python one at a time. The built-in processes whole batches in native code — same result, fraction of the time."</div>
+      </div>
+
+      <div class="lever">
+        <div class="lever-title"><span>5</span>Handle data skew</div>
+        <div class="symptom">Symptom: one task runs 10× longer; one huge partition in spark_partition_id count.</div>
+        <pre><code><span class="cm"># Diagnose (serverless-safe)</span>
+(df.groupBy(F.spark_partition_id().alias(<span class="st">"pid"</span>))
+   .count().orderBy(F.desc(<span class="st">"count"</span>)).show())
+
+<span class="cm"># Fix A: AQE (on by default — mention it)</span>
+<span class="cm"># spark.sql.adaptive.skewJoin.enabled = true</span>
+
+<span class="cm"># Fix B: broadcast the small side (avoids shuffle entirely)</span>
+big.join(F.broadcast(small), <span class="st">"key"</span>)
+
+<span class="cm"># Fix C: salt the hot key</span>
+salted = big.withColumn(<span class="st">"salt"</span>, (F.rand() * <span class="nb">16</span>).cast(<span class="st">"int"</span>))</code></pre>
+        <div class="customer">"One customer has half the rows — one machine did half the work. Spreading the hot key balances load so all machines finish together."</div>
+      </div>
+
+      <div class="lever">
+        <div class="lever-title"><span>6</span>Don't recompute — materialize (no collect)</div>
+        <div class="symptom">Symptom: same DataFrame used N times (re-runs lineage N×); or collect()/toPandas() on large data.</div>
+        <pre><code><span class="cm"># SERVERLESS: materialize to Delta (not .cache())</span>
+base.write.mode(<span class="st">"overwrite"</span>).saveAsTable(<span class="st">"default.base_step"</span>)
+base = spark.table(<span class="st">"default.base_step"</span>)
+
+<span class="cm"># Never: rows = base.collect()   ← driver OOM</span>
+<span class="cm"># Instead: base.limit(20).show()</span></code></pre>
+        <div class="warn" style="margin:3px 0"><code>.cache()</code> is restricted on Databricks serverless/Free Edition — materialize to Delta instead. Saying this out loud <em>is</em> the scoring point.</div>
+        <div class="customer">"We were rebuilding the same intermediate result three times. One write = later steps near-instant, driver safe."</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     PAGE 4 — DELTA LAKE
+════════════════════════════════════════════════════════════════════ -->
+<div class="sheet">
+  <div class="sheet-header">
+    <div class="sheet-title">Delta Lake</div>
+    <div class="sheet-phase">Phase 2 — Code Stewardship</div>
+  </div>
+
+  <div class="cols-2">
+    <div>
+      <h2>Why Delta exists</h2>
+      <p>Plain Parquet = cheap columnar reads but <strong>no ACID, no updates, no time travel, no concurrent writers</strong>. Delta wraps Parquet with a transaction log (<code>_delta_log/</code>) that delivers all four.</p>
+
+      <h2>MERGE — upsert pattern</h2>
+      <pre><code>MERGE INTO target t
+USING source s ON t.id = s.id
+WHEN MATCHED     THEN UPDATE SET *
+WHEN NOT MATCHED THEN INSERT *;</code></pre>
+      <ul>
+        <li><strong>Idempotent re-runs</strong> — if today's batch arrives twice, MERGE doesn't double-insert.</li>
+        <li><strong>Predicate on the join key</strong> — without it, MERGE scans all target files.</li>
+        <li><strong>Cost = rewriting matched files</strong> (copy-on-write). Many targeted updates → file churn → use Deletion Vectors.</li>
+      </ul>
+      <div class="customer">"We track every change, so reports can answer 'what did the table look like on March 5?'"</div>
+
+      <h2>Time travel</h2>
+      <pre><code>SELECT * FROM events VERSION AS OF 42;
+SELECT * FROM events TIMESTAMP AS OF '2026-06-01';
+spark.read.format("delta").option("versionAsOf", 42).table("events")</code></pre>
+      <div class="customer">"If a bad batch corrupts the table we can roll the read back while we investigate — no restore-from-backup window."</div>
+      <div class="warn">
+        <div class="label">Retention</div>
+        Default 7-day file retention, 30-day log retention. <strong>Never <code>VACUUM 0 HOURS</code></strong> — breaks active readers.
+      </div>
+
+      <h2>Schema evolution</h2>
+      <pre><code><span class="cm"># Add new columns on write</span>
+df.write.format(<span class="st">"delta"</span>).mode(<span class="st">"append"</span>)
+        .option(<span class="st">"mergeSchema"</span>, <span class="st">"true"</span>).saveAsTable(<span class="st">"target"</span>)
+
+spark.conf.set(<span class="st">"spark.databricks.delta.schema.autoMerge.enabled"</span>, <span class="st">"true"</span>)</code></pre>
+      <p><code>mergeSchema=true</code> accepts <strong>new columns</strong> only, not type-incompatible changes. A renamed column = "drop + add" — usually wrong.</p>
+    </div>
+
+    <div>
+      <h2>OPTIMIZE &amp; VACUUM</h2>
+      <pre><code>OPTIMIZE my_table;
+OPTIMIZE my_table WHERE date >= '2026-06-01';
+OPTIMIZE my_table ZORDER BY (customer_id);</code></pre>
+      <p>Rewrites many small files → fewer ~128 MB files. Run nightly on heavy-write tables. Storage doesn't shrink until <code>VACUUM</code>.</p>
+      <div class="customer">"Every future query gets faster — not just today's — because reads hit a handful of right-sized files instead of thousands of tiny ones."</div>
+
+      <h2>ZORDER vs Liquid Clustering</h2>
+      <table>
+        <tr><th></th><th>ZORDER</th><th>Liquid Clustering</th></tr>
+        <tr><td><strong>Setup</strong></td><td>After every OPTIMIZE</td><td>Declared at table creation (<code>CLUSTER BY</code>)</td></tr>
+        <tr><td><strong>Maintenance</strong></td><td>Re-run manually</td><td>Auto on OPTIMIZE, incremental</td></tr>
+        <tr><td><strong>Changing keys</strong></td><td>Full reorder from scratch</td><td><code>ALTER TABLE … CLUSTER BY</code> is cheap</td></tr>
+        <tr><td><strong>Use when</strong></td><td>Older tables, classic</td><td>New tables on modern runtimes</td></tr>
+      </table>
+      <p>Both enable <strong>data skipping</strong>: filters skip files whose stats don't overlap the predicate.</p>
+      <div class="customer">"We physically co-locate rows that get filtered together so the engine skips most files for a typical query."</div>
+
+      <h2>SCD2 schema</h2>
+      <pre><code>business_key    <span class="cm">-- natural id</span>
+&lt;attrs…&gt;        <span class="cm">-- slowly-changing columns</span>
+effective_from  DATE NOT NULL
+effective_to    DATE       <span class="cm">-- NULL = current</span>
+is_current      BOOLEAN    <span class="cm">-- denormalized convenience flag</span></code></pre>
+      <p>SCD2 needs <strong>two MERGE passes</strong> — one to close old row, one to insert new row.</p>
+
+      <h2>Things candidates get wrong</h2>
+      <table>
+        <tr><th>Mistake</th><th>Reality</th></tr>
+        <tr><td>"MERGE is faster than append"</td><td>MERGE does more work (read + match + rewrite). It's correct, not faster.</td></tr>
+        <tr><td>"Partition by customer_id"</td><td>High-cardinality partition → thousands of tiny folders. Use ZORDER/Liquid instead.</td></tr>
+        <tr><td>"ZORDER every column"</td><td>Stats degrade past ~3 ZORDER columns. Pick what you actually filter on.</td></tr>
+        <tr><td>"Delta only works on Databricks"</td><td>Open-source delta-spark runs on any Spark.</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="narrate">
+    <div class="q">Narrate it back — "How would you handle late-arriving updates to a customer dimension table?"</div>
+    <div class="a">I'd use a Delta SCD2 pattern — MERGE on the natural business key. Matched rows where something changed: close the current row by setting effective_to to today and is_current to false, then insert the new state. Unmatched rows insert directly. This is idempotent — re-running the batch won't duplicate rows because the MERGE condition guards it. I'd also make sure the MERGE predicate includes a date range filter so Delta's file pruning only touches recent files, not the whole table.</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     PAGE 5 — PYTHON FEATURE DEV + DATA PATTERNS
+════════════════════════════════════════════════════════════════════ -->
+<div class="sheet">
+  <div class="sheet-header">
+    <div class="sheet-title">Python Feature Dev &amp; Data Patterns</div>
+    <div class="sheet-phase">Phase 1 — Code Stewardship</div>
+  </div>
+
+  <div class="cols-2">
+    <div>
+      <h2>5-step protocol for reading unfamiliar code</h2>
+      <p><em>Say each step out loud — this is the performance, not just the prep.</em></p>
+      <ol>
+        <li><strong>Find the entry point.</strong> What does a caller actually invoke? (<code>run()</code>, <code>main()</code>, the public method.)</li>
+        <li><strong>Trace the data contract.</strong> What goes in, what comes out, what shape? Name the types.</li>
+        <li><strong>Name the extension points.</strong> Where is this designed to be extended? (base classes, registries, callbacks.)</li>
+        <li><strong>Spot the invariants.</strong> What must stay true? (e.g., "every rule returns a result; results never raise.")</li>
+        <li><strong>Only then change it.</strong> Add the feature the way the code wants to be extended, not by bolting on a special case.</li>
+      </ol>
+      <div class="tip">
+        <div class="label">Scoring move</div>
+        Saying "let me restate what this does before I touch it" is itself a point.
+      </div>
+
+      <h2>Medallion architecture</h2>
+      <table>
+        <tr><th>Layer</th><th>Contents</th><th>Operations</th></tr>
+        <tr><td><strong>Bronze</strong></td><td>Raw, as-ingested</td><td>Append-only; one source = one table</td></tr>
+        <tr><td><strong>Silver</strong></td><td>Cleaned, validated, deduped, joined</td><td>MERGE upserts; DQ checks</td></tr>
+        <tr><td><strong>Gold</strong></td><td>Business-ready aggregates</td><td>OPTIMIZE + ZORDER/Liquid; star-schema</td></tr>
+      </table>
+      <div class="tip">"I'd land raw into Bronze so we can replay if Silver logic changes; Silver is where dedup/SCD happens; Gold is what the dashboards read."</div>
+
+      <h2>Idempotent incremental loads</h2>
+      <p>Three ingredients for a safe re-runnable nightly job:</p>
+      <ol>
+        <li><strong>Watermark column</strong> in source (<code>updated_at</code>)</li>
+        <li><strong>MERGE</strong> on natural key — not append (re-running won't duplicate)</li>
+        <li><strong>High-water-mark table</strong> — record max watermark processed per source</li>
+      </ol>
+      <div class="customer">"The job is safe to re-run from scratch — worst case we redo work, never duplicate or skip rows."</div>
+    </div>
+
+    <div>
+      <h2>Deduplication patterns</h2>
+      <table>
+        <tr><th>Goal</th><th>Tool</th></tr>
+        <tr><td>Drop exact duplicate rows</td><td><code>df.dropDuplicates()</code></td></tr>
+        <tr><td>Same business key → keep latest</td><td><code>Window.partitionBy(key).orderBy(desc(ts))</code> + <code>row_number()==1</code></td></tr>
+      </table>
+      <div class="warn"><code>dropDuplicates(["id"])</code> keeps an <em>arbitrary</em> row when keys collide. Use the window pattern if you need "latest wins."</div>
+
+      <h2>CDC ingestion shapes</h2>
+      <p>Ask the customer: <em>"Is the source a snapshot or an event stream? Is there a soft-delete flag?"</em></p>
+      <ul>
+        <li><strong>Snapshot per period</strong> — full dump every N hours → MERGE on natural key</li>
+        <li><strong>Insert/update/delete events</strong> — op flag column → MERGE handling all 3 op types</li>
+        <li><strong>Log-based CDC (Debezium/Fivetran)</strong> — before/after images → after-image + op flag is sufficient</li>
+      </ul>
+
+      <h2>SCD types at a glance</h2>
+      <table>
+        <tr><th>Type</th><th>Stores</th><th>Use when</th></tr>
+        <tr><td><strong>SCD1</strong></td><td>Overwrite only</td><td>History doesn't matter</td></tr>
+        <tr><td><strong>SCD2</strong></td><td>Full history (effective_from/to)</td><td>History matters — default choice</td></tr>
+        <tr><td><strong>SCD3</strong></td><td>One "previous value" col</td><td>Rarely right; SCD2 is cleaner</td></tr>
+      </table>
+
+      <h2>Python patterns to know cold</h2>
+      <pre><code><span class="cm"># Dataclass with field defaults</span>
+<span class="kw">from</span> dataclasses <span class="kw">import</span> dataclass, field
+<span class="kw">@dataclass</span>
+<span class="kw">class</span> <span class="fn">Result</span>:
+    name: str; passed: bool; failed_count: int = <span class="nb">0</span>
+
+<span class="cm"># Abstract base class</span>
+<span class="kw">from</span> abc <span class="kw">import</span> ABC, abstractmethod
+<span class="kw">class</span> <span class="fn">Rule</span>(ABC):
+    <span class="kw">@abstractmethod</span>
+    <span class="kw">def</span> <span class="fn">check</span>(self, records): ...
+
+<span class="cm"># Type hints</span>
+<span class="kw">from</span> typing <span class="kw">import</span> Callable, Any
+Validator = Callable[[list[dict]], bool]</code></pre>
+    </div>
+  </div>
+
+  <div class="narrate">
+    <div class="q">Narrate it back — Phase 1 opening: "You're handed a 200-line Python file. What do you do first?"</div>
+    <div class="a">I'd find the entry point — what a caller invokes — and trace the data contract: what goes in and what comes out. Then I'd find the extension points, the places where it's designed to grow. I'd look for base classes or registries that hint at the pattern. Then I'd restate the whole thing in a sentence before changing a single line. This way I know exactly where to add the feature and what invariants I can't break.</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     PAGE 6 — AI STEWARDSHIP + ALL NARRATE PROMPTS
+════════════════════════════════════════════════════════════════════ -->
+<div class="sheet">
+  <div class="sheet-header">
+    <div class="sheet-title">AI Stewardship + Narrate It Back</div>
+    <div class="sheet-phase">Both phases — AI Stewardship signal</div>
+  </div>
+
+  <div class="cols-2">
+    <div>
+      <h2>Good prompt anatomy</h2>
+      <ul>
+        <li><strong>Goal + constraints:</strong> "Rewrite this join to broadcast the small side. We're on serverless — no <code>.cache()</code>."</li>
+        <li><strong>Give schema/context:</strong> mention the table name and key columns.</li>
+        <li><strong>Ask for explanation, not just code:</strong> "Explain why this is faster" → you can verify the reasoning <em>and</em> have the customer translation ready.</li>
+        <li><strong>Iterate small:</strong> one transformation at a time beats "optimize this whole notebook."</li>
+        <li><strong>Use it to decode unfamiliar code:</strong> "Explain what this function does and its inputs/outputs" is legitimate for Phase 1.</li>
+      </ul>
+      <div class="tip">
+        <div class="label">Narrate your prompting</div>
+        "I'll ask Genie for a first pass, then I'll check the join strategy myself in the plan." That sentence alone shows you're the pilot.
+      </div>
+
+      <h2>6-point audit checklist</h2>
+      <ul class="checklist">
+        <li><strong>Does it run?</strong> Test on a small slice first.</li>
+        <li><strong>Is it correct?</strong> Spot-check counts/rows against expected.</li>
+        <li><strong>Is it efficient?</strong> Needless shuffle? Python UDF? <code>collect()</code>? <code>distinct()</code>?</li>
+        <li><strong>Is it serverless-legal?</strong> No <code>sparkContext</code> / RDDs / <code>.cache()</code>.</li>
+        <li><strong>Are the APIs real?</strong> Function names, params, config keys — do they exist?</li>
+        <li><strong>Did it preserve the contract?</strong> In Phase 1: same inputs/outputs, extension points kept?</li>
+      </ul>
+
+      <h2>Hallucinations to catch</h2>
+      <table>
+        <tr><th>What AI does</th><th>How you catch it</th></tr>
+        <tr><td>Invented config keys (<code>turboJoin.enabled</code>)</td><td>If you don't recognise it, doubt it. Real keys: <code>spark.sql.adaptive.enabled</code>, <code>spark.sql.autoBroadcastJoinThreshold</code>, <code>spark.sql.shuffle.partitions</code></td></tr>
+        <tr><td>Serverless-illegal: <code>df.cache()</code>, <code>sparkContext</code>, <code>rdd.getNumPartitions()</code></td><td>You know these fail — call it out and use the Delta/spark_partition_id alternative</td></tr>
+        <tr><td>Python UDF for something a built-in does (<code>strip</code> → <code>F.trim</code>)</td><td>Ask: "does a built-in exist?" Look up if unsure.</td></tr>
+        <tr><td>Deprecated API (<code>registerTempTable</code>, <code>sqlContext</code>)</td><td>Use <code>createOrReplaceTempView</code>, <code>spark.sql</code></td></tr>
+        <tr><td>Needless <code>.distinct()</code> or <code>orderBy</code></td><td>Ask: "does this add a shuffle we actually need?"</td></tr>
+        <tr><td>Over-eager rewrite (replaces working code)</td><td>Diff against original; keep the contract</td></tr>
+      </table>
+    </div>
+
+    <div>
+      <h2>All narrate-it-back prompts</h2>
+      <p style="color:var(--light); font-size:7.5pt; margin-bottom:6px">Close the page. Answer in &lt;45 seconds out loud. Check the answer.</p>
+
+      <div class="narrate">
+        <div class="q">1. What happens when I call df.groupBy('country').agg(sum('amount')).count()?</div>
+        <div class="a">transformations build plan → count() triggers Catalyst optimization → physical plan with Exchange nodes → job → stages at shuffle boundaries → tasks per partition → result to driver</div>
+      </div>
+
+      <div class="narrate">
+        <div class="q">2. Why is filter cheap but groupBy expensive?</div>
+        <div class="a">filter is narrow — stays on the same machine. groupBy is wide — Spark must redistribute all rows by key across the network (the shuffle). Shuffle writes to disk, crosses the network, re-reads — that's where time and money go.</div>
+      </div>
+
+      <div class="narrate">
+        <div class="q">3. Your job has 200 tasks but the data is tiny. What's happening and what fixes it?</div>
+        <div class="a">spark.sql.shuffle.partitions defaults to 200 so the shuffle stage created 200 partitions even though the data is tiny — thousands of near-empty tasks with scheduling overhead dominating. Fix: lower the setting or let AQE auto-coalesce (it does this by default in modern Databricks).</div>
+      </div>
+
+      <div class="narrate">
+        <div class="q">4. When would you force a broadcast join, and what's the risk if the "small" side isn't small?</div>
+        <div class="a">Broadcast when one side is a small lookup/dimension table (≤~100 MB) — the big side never shuffles. Risk: broadcasting something too large OOMs executors because every executor gets a full copy. Always sanity-check the actual size before hinting.</div>
+      </div>
+
+      <div class="narrate">
+        <div class="q">5. Why does a Python UDF make an otherwise-fast query slow?</div>
+        <div class="a">A Python UDF serializes every row out of the JVM to a Python process and back — row-by-row. It breaks out of Catalyst optimization, whole-stage codegen, and Photon. It's often 10–100× slower than the equivalent built-in. If I can't avoid custom logic, I'd use a vectorized (pandas) UDF which works in Arrow batches instead.</div>
+      </div>
+
+      <div class="narrate">
+        <div class="q">6. One task in a stage runs 10× longer than the rest. What do you suspect and how do you fix it?</div>
+        <div class="a">Data skew — one join/group key has vastly more rows than others. Check with spark_partition_id groupBy count. Fixes in order: let AQE skew-join handle it (it's on by default); broadcast the small side to avoid the shuffle entirely; salt the hot key to spread it across partitions.</div>
+      </div>
+
+      <div class="narrate">
+        <div class="q">7. Why is df.toPandas() dangerous on a large DataFrame?</div>
+        <div class="a">It pulls every row from all executors into the driver's memory. On large data the driver OOMs or becomes unresponsive. The alternatives: write() for distributed output, or show(n)/limit(n).show() for a quick peek.</div>
+      </div>
+
+      <div class="narrate">
+        <div class="q">8. AQE is on by default. Does that mean you don't need to think about optimizations?</div>
+        <div class="a">No. AQE handles partition coalescing, runtime broadcast promotion, and skew splitting — but it can't fix bad logic. It won't avoid a shuffle you introduced unnecessarily, fix a Python UDF blocking vectorization, or push a filter you placed after an expensive join. AQE is a safety net, not a replacement for knowing the levers.</div>
+      </div>
+
+      <div class="narrate">
+        <div class="q">9. Genie Code gives you code with df.cache() on Databricks Free Edition. What do you do?</div>
+        <div class="a">Call it out — cache() is restricted on serverless/Free Edition. The fix is to materialize to Delta instead: write the DataFrame to a table, then read it back. That's the serverless-safe equivalent of caching and it actually gives you durable storage. I'd tell the interviewer: "Genie's answer would fail here — let me swap that out."</div>
+      </div>
+
+      <div class="narrate">
+        <div class="q">10. How would you make a nightly ingestion job safe to re-run?</div>
+        <div class="a">Three ingredients: a watermark column in the source to identify new/changed rows, MERGE on the natural key (not append — so re-running doesn't duplicate), and a high-water-mark table recording the max watermark processed. On failure you reset the HWM and re-run — worst case you redo work, never duplicate or skip.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- .page -->
+<script>
+// keyboard shortcut: Cmd/Ctrl+P
+document.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'p') window.print();
+});
+</script>
+</body>
+</html>

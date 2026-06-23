@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Lesson 17 — Genie Code Prompting &amp; Hallucination Audits</title>
+<style>
+:root{--bg:#0f1117;--sur:#1a1d27;--bdr:#2e3147;--acc:#ff3621;--grn:#00a972;--txt:#e8eaf0;--mut:#8b8fa8;--cb:#12151e;--amb:#e8a020;--blu:#4a90e2}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:15px;line-height:1.7;padding:2rem 1rem}
+.page{max-width:800px;margin:0 auto}
+.lh{margin-bottom:2rem}
+.ln{color:var(--acc);font-size:.78rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+h1{font-size:1.85rem;font-weight:800;margin:.2rem 0 .4rem}
+.sub{color:var(--mut);font-size:1rem}
+.badges{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.6rem}
+.badge{font-size:.68rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:.2rem .55rem;border-radius:999px;border:1px solid var(--bdr);color:var(--mut)}
+.badge.p{border-color:var(--acc);color:var(--acc)}
+.nav{display:flex;justify-content:space-between;margin:1.5rem 0;font-size:.84rem;color:var(--mut)}
+.nav a{color:var(--grn);text-decoration:none}
+section{margin-bottom:2rem}
+h2{font-size:1rem;font-weight:700;color:var(--grn);margin-bottom:.6rem;border-bottom:1px solid var(--bdr);padding-bottom:.3rem}
+h3{font-size:.95rem;font-weight:600;margin:1rem 0 .3rem;color:var(--txt)}
+p{margin-bottom:.8rem}
+ul,ol{padding-left:1.4rem;margin-bottom:.8rem}
+li{margin-bottom:.3rem}
+pre{background:var(--cb);border:1px solid var(--bdr);border-radius:8px;padding:1rem 1.2rem;overflow-x:auto;font-size:.82rem;line-height:1.55;margin-bottom:.9rem;font-family:"JetBrains Mono","Fira Code","Cascadia Code",monospace;white-space:pre}
+p code,li code{background:var(--cb);border:1px solid var(--bdr);border-radius:3px;padding:.1em .35em;font-size:.82em;font-family:"JetBrains Mono","Fira Code",monospace}
+.box{border-left:3px solid var(--grn);background:var(--sur);border-radius:0 8px 8px 0;padding:.8rem 1.1rem;margin-bottom:.9rem}
+.box.w{border-left-color:var(--amb)}
+.box.i{border-left-color:var(--acc)}
+.box strong{display:block;margin-bottom:.25rem;font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;color:var(--mut)}
+/* setup / teardown banners */
+.setup-banner,.teardown-banner{border-radius:8px;padding:1rem 1.2rem;margin-bottom:1rem}
+.setup-banner{background:#0a1f14;border:1px solid #1a5c38}
+.setup-banner h2{color:#00d488;border-color:#1a5c38}
+.teardown-banner{background:#1a0e0a;border:1px solid #5c2a1a}
+.teardown-banner h2{color:#e87040;border-color:#5c2a1a}
+.copy-btn{float:right;background:transparent;border:1px solid var(--bdr);color:var(--mut);font-size:.72rem;padding:.2rem .55rem;border-radius:4px;cursor:pointer;font-family:monospace;margin-bottom:.3rem}
+.copy-btn:hover{border-color:var(--grn);color:var(--grn)}
+/* quiz */
+.quiz{background:var(--sur);border:1px solid var(--bdr);border-radius:10px;padding:1.2rem;margin-bottom:1.2rem}
+.quiz h3{margin-top:0;font-size:.93rem}
+.opts{list-style:none;padding:0;margin:.8rem 0}
+.opts li{padding:.5rem .9rem;border:1px solid var(--bdr);border-radius:7px;margin-bottom:.4rem;cursor:pointer;font-size:.87rem;transition:border-color .15s,background .15s}
+.opts li:hover{border-color:var(--grn);background:rgba(0,169,114,.05)}
+.opts li.ok{border-color:var(--grn);background:rgba(0,169,114,.12)}
+.opts li.no{border-color:var(--acc);background:rgba(255,54,33,.1)}
+.fb{display:none;font-size:.84rem;margin-top:.6rem;padding:.6rem .9rem;border-radius:7px}
+.fb.show{display:block}
+.fb.ok{background:rgba(0,169,114,.1);color:var(--grn)}
+.fb.no{background:rgba(255,54,33,.1);color:#ff7a6b}
+.pbw{background:var(--sur);border:1px solid var(--bdr);border-radius:999px;height:7px;overflow:hidden;margin-bottom:.3rem}
+.pb{height:100%;background:var(--grn);transition:width .4s;border-radius:999px;width:0%}
+.pl{font-size:.72rem;color:var(--mut);text-align:right}
+.done-box{text-align:center;padding:1.8rem;border:1px solid var(--bdr);border-radius:10px;background:var(--sur);margin-top:1.5rem}
+.done-box h2{border:none;color:var(--grn);font-size:1.3rem}
+.cmd{display:inline-block;background:var(--cb);border:1px solid var(--grn);border-radius:7px;padding:.5rem 1rem;font-family:monospace;font-size:.87rem;color:var(--grn);margin:.8rem 0}
+.nxt-btn{display:inline-block;margin-top:.4rem;padding:.6rem 1.4rem;background:var(--acc);color:white;font-weight:700;font-size:.87rem;border-radius:7px;text-decoration:none}
+footer{margin-top:2.5rem;padding-top:.9rem;border-top:1px solid var(--bdr);color:var(--mut);font-size:.78rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:.4rem}
+footer a{color:var(--mut)}
+</style>
+</head>
+<body><div class="page">
+
+<div class="lh">
+  <div class="ln">Lesson 17 of 19</div>
+  <h1>Genie Code Prompting &amp; Hallucination Audits</h1>
+  <p class="sub">You are the pilot — use AI to go faster, then visibly catch its mistakes</p>
+  <div class="badges"><span class="badge p">AI Stewardship</span></div>
+</div>
+
+<div class="pbw"><div class="pb" id="pb"></div></div>
+<p class="pl" id="pl">0 / 3 checks</p>
+
+<div class="nav"><a href="16-reading-code-you-didnt-write.html">← 16: Reading Code</a><a href="18-common-spark-errors.html">18: Common Errors →</a></div>
+
+<!-- ── SETUP ────────────────────────────────────────────────────── -->
+<section class="setup-banner">
+<h2>🛠 Setup — run this cell first</h2>
+<p>Paste into a Databricks notebook cell and run before working through the examples below.</p>
+<button class="copy-btn" onclick="copyCode('setup-code')">copy</button>
+<pre id="setup-code"># Lesson 17 setup — prepare the "bad AI output" audit exercise
+# No Delta tables needed; this lesson is about prompting and auditing AI output
+
+print("Lesson 17: AI Stewardship")
+print("This lesson is about Genie Code prompting and hallucination audits.")
+print("The 'setup' here is reading the deliberately flawed code below.")
+print()
+
+bad_code = '''
+# "Genie Code suggestion" — audit this before running
+
+sc = spark.sparkContext                                    # line 1
+df = spark.table("workspace.default.orders")
+n = df.rdd.getNumPartitions()                              # line 3
+df = df.cache()                                            # line 4
+spark.conf.set("spark.sql.turboJoin.enabled", "true")      # line 5
+from pyspark.sql.functions import udf
+strip_udf = udf(lambda s: s.strip())                       # line 7
+df = df.withColumn("category", strip_udf("raw_category"))
+result = df.join(
+    spark.table("workspace.default.products"), "product_id"  # line 10
+)
+rows = result.collect()                                    # line 11
+'''
+print("Genie's suggestion:")
+print(bad_code)
+print("Your task: find ALL the problems before running a single cell.")
+</pre>
+</section>
+
+<!-- ── LESSON BODY ──────────────────────────────────────────────── -->
+
+<section>
+<h2>The win condition</h2>
+<p>The interview scores <strong>AI Stewardship</strong> explicitly. The win condition is not "don't use AI" or "use AI for everything" — it's <strong>use it fast, then visibly catch its mistakes.</strong></p>
+<div class="box i"><strong>Say this while prompting</strong>"I'll ask Genie for a first pass, then I'll check the join strategy myself in the plan." That sentence shows the grader you're the pilot.</div>
+</section>
+
+<section>
+<h2>Good prompt anatomy</h2>
+<pre># WEAK prompt — vague, no constraints, hard to audit
+# "Make this faster"
+
+# STRONG prompt — specific goal + constraints + ask for explanation
+prompt = (
+    "Rewrite this join to use a broadcast hint on the products table. "
+    "We're on Databricks serverless so don't use .cache() or sparkContext. "
+    "After the code, explain in one sentence why this is faster."
+)
+# Constraints in prompts = auditable output
+# "explain why" = you get the customer translation for free</pre>
+</section>
+
+<section>
+<h2>The 6-point audit checklist</h2>
+<pre># For EVERY Genie output, run through this before executing:
+
+# 1. Does it RUN? Test on a small slice first
+#    result.limit(100).show()  -- not result.count() on the full table
+
+# 2. Is it CORRECT? Spot-check row counts and values
+#    print(result.count())   # does it match expectations?
+
+# 3. Is it EFFICIENT? Look for:
+#    - Needless shuffle (unnecessary groupBy, orderBy, distinct)
+#    - Python UDF where a built-in exists
+#    - .collect() on a large DataFrame
+
+# 4. Is it SERVERLESS-LEGAL? Forbidden on Free Edition:
+#    - spark.sparkContext
+#    - df.rdd.*
+#    - df.cache() / df.persist()
+#    - spark.conf.set with non-whitelisted configs
+
+# 5. Are the APIS REAL? Invented config keys are common
+#    Real AQE keys: spark.sql.adaptive.enabled
+#                   spark.sql.adaptive.skewJoin.enabled
+#                   spark.sql.autoBroadcastJoinThreshold
+#    Real shuffle key: spark.sql.shuffle.partitions
+
+# 6. Did it PRESERVE THE CONTRACT? (Phase 1)
+#    Same function signatures? Same return types? Extension points kept?
+print("Checklist ready.")</pre>
+</section>
+
+<section>
+<h2>Audit the bad code from setup</h2>
+<pre># Re-read the bad_code from setup. Find all 7 problems before looking below.
+# Hint: each numbered comment is a clue.
+
+issues = {
+    "line 1":  "spark.sparkContext — NOT available on serverless/Free Edition",
+    "line 3":  "df.rdd.getNumPartitions() — RDD API unavailable on serverless. Use spark_partition_id() groupBy",
+    "line 4":  "df.cache() — restricted on serverless. Materialize to Delta instead",
+    "line 5":  "spark.sql.turboJoin.enabled — MADE UP config key, does not exist",
+    "line 7":  "udf(lambda s: s.strip()) — use F.trim() built-in; UDF is slow + missing return type",
+    "line 10": "join to products with no broadcast hint — products is likely small, should be broadcast(products)",
+    "line 11": "result.collect() — pulls ALL rows to driver. Use show(n) or write() instead",
+}
+for line, issue in issues.items():
+    print(f"{line}: {issue}")</pre>
+<div class="box"><strong>Say this out loud during the interview</strong>"Genie suggested .cache() — but we're on serverless where that's restricted, so I'll materialize to Delta instead." That single sentence demonstrates three signals at once: AI Stewardship, Code Stewardship, serverless awareness.</div>
+</section>
+
+
+<!-- ── QUIZZES ──────────────────────────────────────────────────── -->
+<section>
+<h2>Knowledge checks</h2>
+
+<div class="quiz" id="q1">
+  <h3>Genie outputs a config: spark.conf.set('spark.sql.fastMerge.enabled', 'true'). What do you do?</h3>
+  <ul class="opts">
+        <li onclick="ans(this,'q1',false)">Accept it — Genie knows the Spark config namespace.</li>
+        <li onclick="ans(this,'q1',true)">Flag it as a likely hallucination. Real AQE/optimization configs have known names. If you don't recognize it, look it up before running.</li>
+        <li onclick="ans(this,'q1',false)">Run it and check if performance improves.</li>
+        <li onclick="ans(this,'q1',false)">Ask Genie to explain the config — if the explanation sounds right, accept it.</li>
+  </ul>
+  <div class="fb" id="q1-fb"></div>
+</div>
+<div class="quiz" id="q2">
+  <h3>Genie writes a prompt reply with df.cache() in the solution. You're on Databricks Free Edition. What do you say?</h3>
+  <ul class="opts">
+        <li onclick="ans(this,'q2',false)">Accept it — cache() might work on newer Free Edition clusters.</li>
+        <li onclick="ans(this,'q2',true)">'Genie suggested .cache() but that's restricted on serverless — I'll materialize to Delta instead: write to a table, read back.' Then fix it.</li>
+        <li onclick="ans(this,'q2',false)">Skip the cache() line and move on without mentioning it.</li>
+        <li onclick="ans(this,'q2',false)">Wrap the cache() in a try/except to handle if it fails.</li>
+  </ul>
+  <div class="fb" id="q2-fb"></div>
+</div>
+<div class="quiz" id="q3">
+  <h3>What's the single most important behavior during Genie prompting that the interview grades?</h3>
+  <ul class="opts">
+        <li onclick="ans(this,'q3',false)">Using as many Genie prompts as possible to show AI fluency.</li>
+        <li onclick="ans(this,'q3',true)">Visibly auditing Genie's output — running the checklist out loud, catching mistakes, explaining why they're wrong.</li>
+        <li onclick="ans(this,'q3',false)">Writing longer, more detailed prompts.</li>
+        <li onclick="ans(this,'q3',false)">Avoiding Genie to show you can code without AI.</li>
+  </ul>
+  <div class="fb" id="q3-fb"></div>
+</div>
+</section>
+
+<!-- ── NARRATE IT BACK ─────────────────────────────────────────── -->
+<section>
+<h2>Narrate it back</h2>
+<div class="box i">
+  <strong>Interviewer prompt — say this out loud in under 45 seconds</strong>
+  "Walk me through how you'd use Genie Code in Phase 2 to fix a slow join."
+</div>
+<p><em>Cover: prompt with constraints: 'rewrite this join to broadcast the products table — we're on serverless, no cache()' → run Genie → before executing: audit the output — does it run? is the join strategy right in explain()? any serverless-illegal code? any invented config keys? any collect() pulling to driver? → if Genie adds cache(): say out loud 'cache() is serverless-restricted, I'll materialize to Delta instead' → run on a small slice first, verify row counts, then apply to full dataset → own the final answer: 'I can explain every line whether I wrote it or Genie did'</em></p>
+</section>
+
+<!-- ── TEARDOWN ─────────────────────────────────────────────────── -->
+<section class="teardown-banner">
+<h2>🧹 Teardown — clean up after the lesson</h2>
+<button class="copy-btn" onclick="copyCode('teardown-code')">copy</button>
+<pre id="teardown-code"># Teardown lesson 17 — nothing to clean up
+print("No cleanup needed for lesson 17.")
+</pre>
+</section>
+
+<!-- ── DONE ────────────────────────────────────────────────────── -->
+<div class="done-box" id="done-box">
+  <h2 id="done-title">Lesson 17 — when you're ready</h2>
+  <p>Pass all three knowledge checks above to unlock the next lesson, or run this now to mark it complete:</p>
+  <div class="cmd">mise run teach:done 17</div>
+  <p style="color:var(--mut);font-size:.82rem;margin-top:.4rem">
+    <code>git add teach/ &amp;&amp; git commit -m "lesson 17 done" &amp;&amp; git push</code>
+  </p>
+  <br><a href="18-common-spark-errors.html" class="nxt-btn" id="nxt-btn" style="opacity:.45;pointer-events:none">18: Common Errors →</a>
+</div>
+
+<div class="nav" style="margin-top:1.5rem"><a href="16-reading-code-you-didnt-write.html">← 16: Reading Code</a><a href="18-common-spark-errors.html">18: Common Errors →</a></div>
+<footer>
+  <span>Source: <a href="../../07-AI-Stewardship-Genie-Code.md">07-AI-Stewardship-Genie-Code.md</a></span>
+  <span>
+    <a href="../reference/interview-cheatsheet.html">Cheat Sheet</a> ·
+    <a href="https://spark.apache.org/docs/3.5.0/api/python/" target="_blank">PySpark 3.5 API</a>
+  </span>
+</footer>
+
+</div>
+<script>
+const FB={
+  q1:{ok:"Correct. Invented config keys are one of the most common AI hallucinations. fastMerge.enabled does not exist. Real config keys: spark.sql.adaptive.enabled, spark.sql.autoBroadcastJoinThreshold, spark.sql.shuffle.partitions. When in doubt, check the docs.",no:"Made-up config keys are a top hallucination pattern. If you don't recognize it, doubt it and check docs."},
+  q2:{ok:"Correct. Calling this out explicitly scores points for AI Stewardship AND serverless awareness. The fix is Delta materialization. Silently skipping it misses the scoring opportunity.",no:"Say it out loud: 'cache() is serverless-restricted — materializing to Delta instead.' This scores AI Stewardship."},
+  q3:{ok:"Correct. The graders explicitly want to see you as the pilot. Audit visibly: 'Let me check the join strategy in the plan... this should be broadcast... and this collect() should be a show(). Let me fix those.' Correcting Genie out loud is the win condition.",no:"Visibly auditing — running the checklist out loud and catching mistakes — is the graded behavior."}
+};
+
+const TOTAL=3; let done=0; const answered={};
+function ans(el,qid,ok){
+  if(answered[qid])return; answered[qid]=true;
+  el.classList.add(ok?'ok':'no');
+  const fb=document.getElementById(qid+'-fb');
+  fb.innerHTML=(ok?'✓ ':'✗ ')+FB[qid][ok?'ok':'no'];
+  fb.className='fb show '+(ok?'ok':'no');
+  if(ok){done++; document.getElementById('pb').style.width=Math.round(done/TOTAL*100)+'%'; document.getElementById('pl').textContent=done+' / '+TOTAL+' checks';}
+  if(done===TOTAL){document.getElementById('done-title').textContent='Lesson complete ✓ — mark it done:';const b=document.getElementById('nxt-btn');if(b){b.style.opacity='1';b.style.pointerEvents='auto';}}
+}
+function copyCode(id){const el=document.getElementById(id);if(el){navigator.clipboard.writeText(el.textContent).then(()=>{}).catch(()=>{});}}
+
+</script>
+</body></html>

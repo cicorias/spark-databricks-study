@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Lesson 14 — OPTIMIZE, VACUUM &amp; Liquid Clustering</title>
+<style>
+:root{--bg:#0f1117;--sur:#1a1d27;--bdr:#2e3147;--acc:#ff3621;--grn:#00a972;--txt:#e8eaf0;--mut:#8b8fa8;--cb:#12151e;--amb:#e8a020;--blu:#4a90e2}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:15px;line-height:1.7;padding:2rem 1rem}
+.page{max-width:800px;margin:0 auto}
+.lh{margin-bottom:2rem}
+.ln{color:var(--acc);font-size:.78rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+h1{font-size:1.85rem;font-weight:800;margin:.2rem 0 .4rem}
+.sub{color:var(--mut);font-size:1rem}
+.badges{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.6rem}
+.badge{font-size:.68rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:.2rem .55rem;border-radius:999px;border:1px solid var(--bdr);color:var(--mut)}
+.badge.p{border-color:var(--acc);color:var(--acc)}
+.nav{display:flex;justify-content:space-between;margin:1.5rem 0;font-size:.84rem;color:var(--mut)}
+.nav a{color:var(--grn);text-decoration:none}
+section{margin-bottom:2rem}
+h2{font-size:1rem;font-weight:700;color:var(--grn);margin-bottom:.6rem;border-bottom:1px solid var(--bdr);padding-bottom:.3rem}
+h3{font-size:.95rem;font-weight:600;margin:1rem 0 .3rem;color:var(--txt)}
+p{margin-bottom:.8rem}
+ul,ol{padding-left:1.4rem;margin-bottom:.8rem}
+li{margin-bottom:.3rem}
+pre{background:var(--cb);border:1px solid var(--bdr);border-radius:8px;padding:1rem 1.2rem;overflow-x:auto;font-size:.82rem;line-height:1.55;margin-bottom:.9rem;font-family:"JetBrains Mono","Fira Code","Cascadia Code",monospace;white-space:pre}
+p code,li code{background:var(--cb);border:1px solid var(--bdr);border-radius:3px;padding:.1em .35em;font-size:.82em;font-family:"JetBrains Mono","Fira Code",monospace}
+.box{border-left:3px solid var(--grn);background:var(--sur);border-radius:0 8px 8px 0;padding:.8rem 1.1rem;margin-bottom:.9rem}
+.box.w{border-left-color:var(--amb)}
+.box.i{border-left-color:var(--acc)}
+.box strong{display:block;margin-bottom:.25rem;font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;color:var(--mut)}
+/* setup / teardown banners */
+.setup-banner,.teardown-banner{border-radius:8px;padding:1rem 1.2rem;margin-bottom:1rem}
+.setup-banner{background:#0a1f14;border:1px solid #1a5c38}
+.setup-banner h2{color:#00d488;border-color:#1a5c38}
+.teardown-banner{background:#1a0e0a;border:1px solid #5c2a1a}
+.teardown-banner h2{color:#e87040;border-color:#5c2a1a}
+.copy-btn{float:right;background:transparent;border:1px solid var(--bdr);color:var(--mut);font-size:.72rem;padding:.2rem .55rem;border-radius:4px;cursor:pointer;font-family:monospace;margin-bottom:.3rem}
+.copy-btn:hover{border-color:var(--grn);color:var(--grn)}
+/* quiz */
+.quiz{background:var(--sur);border:1px solid var(--bdr);border-radius:10px;padding:1.2rem;margin-bottom:1.2rem}
+.quiz h3{margin-top:0;font-size:.93rem}
+.opts{list-style:none;padding:0;margin:.8rem 0}
+.opts li{padding:.5rem .9rem;border:1px solid var(--bdr);border-radius:7px;margin-bottom:.4rem;cursor:pointer;font-size:.87rem;transition:border-color .15s,background .15s}
+.opts li:hover{border-color:var(--grn);background:rgba(0,169,114,.05)}
+.opts li.ok{border-color:var(--grn);background:rgba(0,169,114,.12)}
+.opts li.no{border-color:var(--acc);background:rgba(255,54,33,.1)}
+.fb{display:none;font-size:.84rem;margin-top:.6rem;padding:.6rem .9rem;border-radius:7px}
+.fb.show{display:block}
+.fb.ok{background:rgba(0,169,114,.1);color:var(--grn)}
+.fb.no{background:rgba(255,54,33,.1);color:#ff7a6b}
+.pbw{background:var(--sur);border:1px solid var(--bdr);border-radius:999px;height:7px;overflow:hidden;margin-bottom:.3rem}
+.pb{height:100%;background:var(--grn);transition:width .4s;border-radius:999px;width:0%}
+.pl{font-size:.72rem;color:var(--mut);text-align:right}
+.done-box{text-align:center;padding:1.8rem;border:1px solid var(--bdr);border-radius:10px;background:var(--sur);margin-top:1.5rem}
+.done-box h2{border:none;color:var(--grn);font-size:1.3rem}
+.cmd{display:inline-block;background:var(--cb);border:1px solid var(--grn);border-radius:7px;padding:.5rem 1rem;font-family:monospace;font-size:.87rem;color:var(--grn);margin:.8rem 0}
+.nxt-btn{display:inline-block;margin-top:.4rem;padding:.6rem 1.4rem;background:var(--acc);color:white;font-weight:700;font-size:.87rem;border-radius:7px;text-decoration:none}
+footer{margin-top:2.5rem;padding-top:.9rem;border-top:1px solid var(--bdr);color:var(--mut);font-size:.78rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:.4rem}
+footer a{color:var(--mut)}
+</style>
+</head>
+<body><div class="page">
+
+<div class="lh">
+  <div class="ln">Lesson 14 of 19</div>
+  <h1>OPTIMIZE, VACUUM &amp; Liquid Clustering</h1>
+  <p class="sub">Make reads fast: compact small files, co-locate related data</p>
+  <div class="badges"><span class="badge p">Code Stewardship</span></div>
+</div>
+
+<div class="pbw"><div class="pb" id="pb"></div></div>
+<p class="pl" id="pl">0 / 3 checks</p>
+
+<div class="nav"><a href="13-merge-and-scd2.html">← 13: MERGE &amp; SCD2</a><a href="15-medallion-architecture.html">15: Medallion Architecture →</a></div>
+
+<!-- ── SETUP ────────────────────────────────────────────────────── -->
+<section class="setup-banner">
+<h2>🛠 Setup — run this cell first</h2>
+<p>Paste into a Databricks notebook cell and run before working through the examples below.</p>
+<button class="copy-btn" onclick="copyCode('setup-code')">copy</button>
+<pre id="setup-code"># Lesson 14 setup
+from pyspark.sql import functions as F
+import random, datetime
+
+spark.sql("CREATE DATABASE IF NOT EXISTS lesson_db")
+
+# Create a fragmented table (many small files simulated by many small writes)
+spark.sql("DROP TABLE IF EXISTS lesson_db.fragmented")
+spark.sql('''
+  CREATE TABLE lesson_db.fragmented (
+    id INT, category STRING, amount DOUBLE, event_date DATE
+  ) USING DELTA
+''')
+
+# Write in 20 small batches to create many small files
+for day in range(1, 21):
+    batch = spark.createDataFrame(
+        [(i, ["A","B","C","D"][i%4], round(random.uniform(1,1000),2),
+          datetime.date(2025,6,day))
+         for i in range(500)],
+        ["id","category","amount","event_date"]
+    )
+    batch.write.mode("append").format("delta").saveAsTable("lesson_db.fragmented")
+
+# Show the small-files problem
+spark.sql("DESCRIBE DETAIL lesson_db.fragmented").select("numFiles","sizeInBytes").show()
+print("Setup complete — fragmented table has many small files.")
+</pre>
+</section>
+
+<!-- ── LESSON BODY ──────────────────────────────────────────────── -->
+
+<section>
+<h2>The small-files problem</h2>
+<pre># See how fragmented the table is
+spark.sql("DESCRIBE DETAIL lesson_db.fragmented").select("numFiles","sizeInBytes").show()
+# 20 batches × small writes = many tiny files
+
+# Read performance suffers: Spark opens each file separately
+import time
+t0 = time.time()
+spark.table("lesson_db.fragmented").count()
+print(f"Read time (fragmented): {time.time()-t0:.2f}s")</pre>
+</section>
+
+<section>
+<h2>OPTIMIZE — compact small files</h2>
+<pre># OPTIMIZE rewrites small files into ~128MB chunks
+spark.sql("OPTIMIZE lesson_db.fragmented")
+spark.sql("DESCRIBE DETAIL lesson_db.fragmented").select("numFiles","sizeInBytes").show()
+# numFiles should drop significantly
+
+# Measure read performance after OPTIMIZE
+t0 = time.time()
+spark.table("lesson_db.fragmented").count()
+print(f"Read time (after OPTIMIZE): {time.time()-t0:.2f}s")
+
+# OPTIMIZE can target a partition range to avoid full-table rewrite
+spark.sql("OPTIMIZE lesson_db.fragmented WHERE event_date >= '2025-06-15'")</pre>
+<div class="box"><strong>Customer translation</strong>"Every future query gets faster — not just today's — because reads hit a handful of right-sized files instead of dozens of tiny ones."</div>
+</section>
+
+<section>
+<h2>ZORDER vs Liquid Clustering</h2>
+<pre># ZORDER: co-locate rows by column value for data skipping
+spark.sql("OPTIMIZE lesson_db.fragmented ZORDER BY (category)")
+# Now queries filtering by category skip more files
+
+# Liquid Clustering: declare at table creation — auto-maintained by OPTIMIZE
+spark.sql("DROP TABLE IF EXISTS lesson_db.clustered_events")
+spark.sql('''
+  CREATE TABLE lesson_db.clustered_events (
+    id INT, category STRING, amount DOUBLE, event_date DATE
+  ) USING DELTA CLUSTER BY (category, event_date)
+''')
+# Insert data and run OPTIMIZE — clustering is maintained automatically
+spark.table("lesson_db.fragmented").write.mode("append").format("delta").saveAsTable("lesson_db.clustered_events")
+spark.sql("OPTIMIZE lesson_db.clustered_events")</pre>
+</section>
+
+<section>
+<h2>VACUUM — clean up old files</h2>
+<pre># VACUUM removes files no longer needed by any live version (within retention window)
+spark.sql("DESCRIBE HISTORY lesson_db.fragmented").select("version","timestamp","operation").show(5)
+
+# Safe: respect default 7-day retention
+spark.sql("VACUUM lesson_db.fragmented RETAIN 168 HOURS DRY RUN").show()
+
+# DANGEROUS — do not run in production without understanding the consequences:
+# spark.sql("VACUUM lesson_db.fragmented RETAIN 0 HOURS")
+# ↑ Breaks time travel and any in-flight queries that reference old file versions</pre>
+<div class="box w"><strong>Never VACUUM 0 HOURS casually</strong>It removes all files not in the current snapshot — breaking time travel and any reader that opened a file reference before the VACUUM ran.</div>
+</section>
+
+
+<!-- ── QUIZZES ──────────────────────────────────────────────────── -->
+<section>
+<h2>Knowledge checks</h2>
+
+<div class="quiz" id="q1">
+  <h3>lesson_db.fragmented was written in 20 small batches. What problem does this cause for readers?</h3>
+  <ul class="opts">
+        <li onclick="ans(this,'q1',false)">No problem — Delta reads files in parallel so many small files are fine.</li>
+        <li onclick="ans(this,'q1',true)">Each file requires a separate open + metadata read. Many tiny files means excessive overhead per query, even if total data is small.</li>
+        <li onclick="ans(this,'q1',false)">Delta automatically merges files on read so there's no overhead.</li>
+        <li onclick="ans(this,'q1',false)">Small files only matter for write performance, not reads.</li>
+  </ul>
+  <div class="fb" id="q1-fb"></div>
+</div>
+<div class="quiz" id="q2">
+  <h3>What's the difference between ZORDER and Liquid Clustering?</h3>
+  <ul class="opts">
+        <li onclick="ans(this,'q2',false)">They're equivalent — just different syntax.</li>
+        <li onclick="ans(this,'q2',true)">ZORDER must be re-run after every write with OPTIMIZE; Liquid Clustering is declared at table creation and maintained automatically by OPTIMIZE.</li>
+        <li onclick="ans(this,'q2',false)">ZORDER is faster than Liquid Clustering.</li>
+        <li onclick="ans(this,'q2',false)">Liquid Clustering is only available on Delta 3.0+.</li>
+  </ul>
+  <div class="fb" id="q2-fb"></div>
+</div>
+<div class="quiz" id="q3">
+  <h3>Why should you never run VACUUM RETAIN 0 HOURS in production?</h3>
+  <ul class="opts">
+        <li onclick="ans(this,'q3',false)">VACUUM with 0 hours syntax is not valid.</li>
+        <li onclick="ans(this,'q3',true)">It removes all files not in the current snapshot — breaking time travel, concurrent readers, and any in-flight queries that reference old file versions.</li>
+        <li onclick="ans(this,'q3',false)">It's too slow — it scans all files in the table.</li>
+        <li onclick="ans(this,'q3',false)">It breaks the schema enforcement mechanism.</li>
+  </ul>
+  <div class="fb" id="q3-fb"></div>
+</div>
+</section>
+
+<!-- ── NARRATE IT BACK ─────────────────────────────────────────── -->
+<section>
+<h2>Narrate it back</h2>
+<div class="box i">
+  <strong>Interviewer prompt — say this out loud in under 45 seconds</strong>
+  "A nightly job appends 1,000 small files to a Delta table every day. After 30 days the table is slow to query. What do you do?"
+</div>
+<p><em>Cover: classic small-files problem → OPTIMIZE compacts them: run OPTIMIZE lesson_db.table or scope it to a date range to avoid full rewrite → files rewired to ~128 MB chunks → every future query hits fewer files → schedule OPTIMIZE nightly after the append job → optionally add ZORDER by the most-filtered column (e.g. event_date) so filters skip more files → customer: every future query gets faster — not just today's — because reads hit a handful of right-sized files</em></p>
+</section>
+
+<!-- ── TEARDOWN ─────────────────────────────────────────────────── -->
+<section class="teardown-banner">
+<h2>🧹 Teardown — clean up after the lesson</h2>
+<button class="copy-btn" onclick="copyCode('teardown-code')">copy</button>
+<pre id="teardown-code"># Teardown lesson 14
+spark.sql("DROP TABLE IF EXISTS lesson_db.fragmented")
+spark.sql("DROP TABLE IF EXISTS lesson_db.clustered_events")
+spark.sql("DROP DATABASE IF EXISTS lesson_db")
+print("Done.")
+</pre>
+</section>
+
+<!-- ── DONE ────────────────────────────────────────────────────── -->
+<div class="done-box" id="done-box">
+  <h2 id="done-title">Lesson 14 — when you're ready</h2>
+  <p>Pass all three knowledge checks above to unlock the next lesson, or run this now to mark it complete:</p>
+  <div class="cmd">mise run teach:done 14</div>
+  <p style="color:var(--mut);font-size:.82rem;margin-top:.4rem">
+    <code>git add teach/ &amp;&amp; git commit -m "lesson 14 done" &amp;&amp; git push</code>
+  </p>
+  <br><a href="15-medallion-architecture.html" class="nxt-btn" id="nxt-btn" style="opacity:.45;pointer-events:none">15: Medallion Architecture →</a>
+</div>
+
+<div class="nav" style="margin-top:1.5rem"><a href="13-merge-and-scd2.html">← 13: MERGE &amp; SCD2</a><a href="15-medallion-architecture.html">15: Medallion Architecture →</a></div>
+<footer>
+  <span>Source: <a href="../../12-Delta-Lake-Deep-Dive.md">12-Delta-Lake-Deep-Dive.md</a></span>
+  <span>
+    <a href="../reference/interview-cheatsheet.html">Cheat Sheet</a> ·
+    <a href="https://spark.apache.org/docs/3.5.0/api/python/" target="_blank">PySpark 3.5 API</a>
+  </span>
+</footer>
+
+</div>
+<script>
+const FB={
+  q1:{ok:"Correct. Even if data is small in total, each file has per-file overhead: open, read footer/statistics, close. Hundreds of tiny files multiply this overhead. OPTIMIZE compacts them into a handful of right-sized files.",no:"Many small files = many per-file open/close overhead on reads. OPTIMIZE compacts them."},
+  q2:{ok:"Correct. ZORDER is applied by running OPTIMIZE ... ZORDER BY (...) — you must re-run it periodically. Liquid Clustering (CLUSTER BY at table creation) is maintained incrementally by every OPTIMIZE run, and you can change cluster keys cheaply with ALTER TABLE.",no:"ZORDER = run periodically. Liquid Clustering = declared at CREATE TABLE, maintained automatically."},
+  q3:{ok:"Correct. VACUUM removes physical files. With 0 hours retention, it removes everything except the current snapshot. Any reader that opened a file reference before the VACUUM ran will fail. Time travel back before the VACUUM is also gone.",no:"VACUUM 0 HOURS removes ALL old files — breaks time travel, concurrent reads, in-flight queries."}
+};
+
+const TOTAL=3; let done=0; const answered={};
+function ans(el,qid,ok){
+  if(answered[qid])return; answered[qid]=true;
+  el.classList.add(ok?'ok':'no');
+  const fb=document.getElementById(qid+'-fb');
+  fb.innerHTML=(ok?'✓ ':'✗ ')+FB[qid][ok?'ok':'no'];
+  fb.className='fb show '+(ok?'ok':'no');
+  if(ok){done++; document.getElementById('pb').style.width=Math.round(done/TOTAL*100)+'%'; document.getElementById('pl').textContent=done+' / '+TOTAL+' checks';}
+  if(done===TOTAL){document.getElementById('done-title').textContent='Lesson complete ✓ — mark it done:';const b=document.getElementById('nxt-btn');if(b){b.style.opacity='1';b.style.pointerEvents='auto';}}
+}
+function copyCode(id){const el=document.getElementById(id);if(el){navigator.clipboard.writeText(el.textContent).then(()=>{}).catch(()=>{});}}
+
+</script>
+</body></html>
